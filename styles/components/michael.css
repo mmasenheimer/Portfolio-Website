@@ -1,0 +1,131 @@
+.michael {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.michael__img {
+  border-radius: 50%;
+  width: 6rem;
+  height: 6rem;
+}
+
+.michael__subtitle {
+  color: var(--clr-slate800);
+  font-size: var(--size-base);
+  line-height: 0.9;
+}
+
+.michael__title {
+  color: var(--clr-slate400);
+  text-transform: uppercase;
+  font-size: var(--size-4xl);
+  letter-spacing: -0.05em;
+  line-height: 1.3;
+}
+
+.michael__description {
+  max-width: 60ch;
+  font-size: var(--size-sm);
+  color: var(--clr-slate600);
+}
+
+.michael__btn {
+  text-transform: capitalize;
+  font-size: var(--size-sm);
+}
+
+/* extra small */
+@media (min-width: 475px) {
+  .michael {
+    gap: 1.5rem;
+  }
+
+  .michael__img {
+    width: 6.5rem;
+    height: 6.5rem;
+  }
+
+  .michael__subtitle {
+    font-size: var(--size-lg);
+  }
+
+  .michael__title {
+    font-size: var(--size-4xl);
+  }
+
+  .michael__description {
+    font-size: var(--size-base);
+  }
+
+  .michael__btn {
+    font-size: var(--size-base);
+  }
+}
+
+/* small */
+/* @media (min-width: 640px) {
+} */
+
+/* medium */
+/* @media (min-width: 768px) {
+} */
+
+/* large */
+@media (min-width: 1024px) {
+  .michael__img {
+    width: 8rem;
+    height: 8rem;
+  }
+
+  .michael__subtitle {
+    font-size: var(--size-2xl);
+  }
+
+  .michael__title {
+    font-size: var(--size-6xl);
+  }
+
+  .michael__description {
+    font-size: var(--size-lg);
+  }
+
+  .michael__btn {
+    font-size: var(--size-lg);
+  }
+}
+
+/* extra large */
+@media (min-width: 1280px) {
+  .michael {
+    gap: 2rem;
+  }
+  .michael__img {
+    width: 10rem;
+    height: 10rem;
+  }
+
+  .michael__subtitle {
+    font-size: var(--size-4xl);
+  }
+
+  .michael__title {
+    font-size: var(--size-7xl);
+  }
+
+  .michael__description {
+    font-size: var(--size-xl);
+  }
+
+  .michael__btn {
+    font-size: var(--size-xl);
+  }
+}
+
+/* double xl */
+/* @media (min-width: 1536px) {
+} */

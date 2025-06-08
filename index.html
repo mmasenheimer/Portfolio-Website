@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=montserrat*@500,600,700&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dev server</title>
+  </head>
+  <body>
+    <header class="header container">
+      <nav>
+        <ul class="header__menu">
+          <li>
+            <a class="header__link" href="#about">About</a>
+          </li>
+          <li>
+            <a class="header__link" href="#featured">Work</a>
+          </li>
+          <li>
+            <a class="header__link" href="#contact">Contact</a>
+          </li>
+          <li class="header__line"></li>
+          <li>
+            <button id="theme-toggle" class="header__sun">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+                />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <a
+              class="header__resume btn"
+              href="/images/Michael-Resume.pdf"
+              target="_blank"
+              >Resume</a
+            >
+          </li>
+        </ul>
+        <button class="header__bars">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+            />
+          </svg>
+        </button>
+      </nav>
+    </header>
+    <!-- Mobile navigation-->
+    <div class="mobile-nav">
+      <nav>
+        <ul class="mobile-nav__menu">
+          <li>
+            <a class="mobile-nav__link" href="#about">About</a>
+          </li>
+          <li>
+            <a class="mobile-nav__link" href="#featured">Work</a>
+          </li>
+          <li>
+            <a class="mobile-nav__link" href="#contact">Contact</a>
+          </li>
+          <li class="mobile-nav__link-line"></li>
+          <li>
+            <button id="theme-toggle" class="mobile-nav__sun">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+                />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <a class="mobile-nav__btn btn" href="#">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <!--End of mobile navigation-->
+
+    <main>
+      <section class="michael container">
+        <img
+          class="michael__img"
+          src="/images/resume-image02.jpg"
+          alt="Michael Profile Picture"
+        />
+        <h2 class="michael__subtitle">Michael Masenheimer</h2>
+        <h1 class="michael__title">
+          COMP SCI '27 @ U OF ARIZONA.<br />
+
+          MACHINE LEARNING RESEARCH.<br />
+
+          COMP SCI AMBASSADOR. <br />
+          MAKERSPACE TECHNICAL LEAD.
+        </h1>
+        <p class="michael__description">
+          I am an <strong>aspiring software engineer</strong> studying Computer
+          Science, with recent experience in undergraduate research and
+          <strong> client-based software development.</strong> I have worked on
+          applications ranging from Spotify clones and airline metadata systems
+          to generative visual art and AI engines. My current focus lies in
+          <strong>full-stack engineering and machine learning.</strong>
+        </p>
+        <a
+          class="michael__btn btn"
+          href="https://github.com/mmasenheimer"
+          target="_blank"
+          >GitHub</a
+        >
+      </section>
+      <section id="about" class="about container section">
+        <div class="about__content">
+          <h2 class="about__title">What I Bring to the Table</h2>
+          <p class="about__description"></p>
+          <p class="about__description">
+            I have experience in several factions of software development. In
+            school I study
+            <strong
+              >Python, Java, MIPS assembly, web dev, discrete math, and linear
+              algebra.</strong
+            >
+            Through coursework, projects, and work experience, I’ve learned how
+            to pick up new programming languages, understand logical systems,
+            and solve problems effectively. I like to approach projects with a
+            collaborative and growth-centered mindset.
+          </p>
+          <p class="about__description">
+            I also work at the University of Arizona’s
+            <a href="https://lib.arizona.edu/catalyst" target="_blank"
+              >student makerspace,</a
+            >
+            where I’ve learned to program Raspberry Pi and Arduino devices. This
+            fall, I plan to lead coding and circuit workshops through the
+            makerspace. I also volunteer as a
+            <a
+              href="https://cs.arizona.edu/cs-ambassador-program-csa"
+              target="_blank"
+              >Computer Science ambassador,</a
+            >
+            which has helped strengthen my communication and collaboration
+            skills. My goal is to make every student feel supported and
+            encouraged in their CS journey.
+          </p>
+          <hr class="about__hr" />
+          <h3 class="about__subtitle">Technologies</h3>
+          <div class="about__ul-container">
+            <ul class="about__ul">
+              <li class="about__list">Java</li>
+              <li class="about__list">C++</li>
+              <li class="about__list">Python</li>
+            </ul>
+            <ul class="about__ul">
+              <li class="about__list">Unix/Linux</li>
+              <li class="about__list">Docker</li>
+              <li class="about__list">HTML/CSS</li>
+            </ul>
+          </div>
+        </div>
+        <div class="about__img-wrapper">
+          <img
+            class="about__img lazy loading"
+            src="https://placehold.co/2556x2556"
+            data-src="/images/yep2.jpg"
+            alt="Another picture of Michael"
+          />
+        </div>
+      </section>
+      <section id="featured" class="featured container section">
+        <h3 class="featured__subtitle">
+          <strong>Featured Research Project</strong>
+        </h3>
+        <div class="featured__wrapper">
+          <h2 class="featured__title">Trained Neural Networks on the LHC</h2>
+          <a class="featured__link" href="#">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <p class="featured__description">
+          The Large Hadron Collider (LHC) is the world's largest particle
+          accelerator, run by a nuclear physics lab near Geneva called CERN. My
+          research is through the
+          <a href="https://atlas.cern/" target="_blank">ATLAS Experiment,</a> a
+          particle collision detector on the LHC. <br /><br />I investigate
+          hardware-based machine learning for the trigger systems on ATLAS,
+          using <strong>convolutional neural networks in C++.</strong> Through
+          high-level synthesis tools like
+          <strong>hls4ml and PyTorch/TensorFlow,</strong> I’m exploring
+          real-time decision-making between AI engines and the collider’s
+          current digital signal processors.
+        </p>
+        <div class="featured__info-container">
+          <div>
+            <h3 class="featured__label">Tech stack</h3>
+            <ul class="featured__tech-stack">
+              <li class="featured__info">C++</li>
+              <li class="featured__info">PyTorch</li>
+              <li class="featured__info">Docker</li>
+              <li class="featured__info">AMD Versal AI Engines</li>
+              <li class="featured__info">Vitis IDE</li>
+              <li class="featured__info">Git</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="featured__label">Project type</h3>
+            <p class="featured__info">
+              Machine Learning and Artificial Intelligence
+            </p>
+          </div>
+          <div>
+            <h3 class="featured__label">Timeline</h3>
+            <p class="featured__info">April 2025 - Present</p>
+          </div>
+        </div>
+        <div class="featured__img-container">
+          <div class="featured__img-wrapper">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/7680x4320"
+              data-src="images/lhc.jpg"
+              alt="random picture"
+            />
+          </div>
+
+          <div class="featured__img-wrapper">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/7680x4320"
+              data-src="images/neuralnetwork.jpg"
+              alt="random picutre"
+            />
+          </div>
+
+          <div class="featured__img-wrapper">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/7680x4320"
+              data-src="images/resnetcpp.jpg"
+              alt="random picture"
+            />
+          </div>
+
+          <div class="featured__img-wrapper">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/7680x4320"
+              data-src="images/vekengine.jpg"
+              alt="random picture"
+            />
+          </div>
+        </div>
+      </section>
+      <section class="work container section">
+        <h2 class="work__title">Projects</h2>
+        <p class="work__description">
+          These projects showcase my journey in computer science through
+          coursework, research, and professional development. Each one includes
+          a visual preview, and full sites are accessible through the links
+          provided. As summer and fall progress, I’ll continue updating this
+          section and my
+          <a href="https://github.com/mmasenheimer" target="_blank">GitHub </a
+          >with new projects.
+        </p>
+        <div class="work__container">
+          <!-- Project 1 -->
+          <h3 class="work__project-title">Spotifly</h3>
+          <div class="work__img-wrapper work__image1">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/531x526"
+              data-src="/images/spotifyjava.jpg"
+              alt="First chill image"
+            />
+          </div>
+          <div class="work__project work__content1">
+            <h3 class="work__project-subtitle">Spotifly</h3>
+            <p class="work__project-description1">
+              In this project, I worked in Java to enhance my skills in OOP,
+              particularly polymorphism. Spotifly functions similarly to Spotify
+              on the backend, but without the user interface.
+            </p>
+            <p class="work__project-description2">
+              I used encapsulation for security and inheritance to design a
+              local user database within the Java file, incorporating features
+              such as login with backend validation, playlist creation, and song
+              playback.
+            </p>
+            <a class="btn work__project-btn" href="#">Spotifly Repository</a>
+          </div>
+          <!-- Project 2 -->
+          <h3 class="work__project-title">Markov Chain Algorithm</h3>
+          <div class="work__img-wrapper work__image2">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/531x526"
+              data-src="/images/markov.jpg"
+              alt="Second chill image"
+            />
+          </div>
+          <div class="work__project work__content2">
+            <h3 class="work__project-subtitle">Markov Chain Algorithm</h3>
+            <p class="work__project-description1">
+              This program generates random text using a Markov algorithm based
+              on an input text file.
+            </p>
+            <p class="work__project-description2">
+              It works by constructing a custom hash table mapping word prefixes
+              to a list of words that generally follow the prefix based on the
+              text. The program then uses this table to generate new, random
+              sequences of words by selecting a prefix and appending random
+              suffixes based on the stored relationships.
+            </p>
+            <a class="btn work__project-btn" href="#"
+              >Markov Chain Repository</a
+            >
+          </div>
+          <!-- Project 3 -->
+          <h3 class="work__project-title">Automatic Hydroponic Garden</h3>
+          <div class="work__img-wrapper work__image3">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/531x526"
+              data-src="images/hydro.jpg"
+              alt="Chill image 3"
+            />
+          </div>
+          <div class="work__project work__content3">
+            <h3 class="work__project-subtitle">Automatic Hydroponic Garden</h3>
+            <p class="work__project-description1">
+              During Spring 2025, I interned for the U of A makerspace, CATalyst
+              Studios. Our intern cohort decided to make a hydroponic garden. I
+              used a RaspberryPi and Python to automate the watering process.
+            </p>
+            <p class="work__project-description2">
+              I used a Pi5 along with relays, breakout boards, clock modules,
+              lcd screens, and water level sensors to create a UI, displaying
+              messages about the current status of the pump and to control the
+              flow of water.
+            </p>
+            <a class="btn work__project-btn" href="#">Read More!</a>
+          </div>
+          <!-- Project 4 -->
+          <h3 class="work__project-title">Voxel.jp</h3>
+          <div class="work__img-wrapper work__image4">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/531x526"
+              data-src="/images/voxel.jpg"
+              alt="Chill image 3"
+            />
+          </div>
+          <div class="work__project work__content4">
+            <h3 class="work__project-subtitle">Voxel.jp</h3>
+            <p class="work__project-description1">
+              When I first started learning how to code, I discovered a
+              JavaScript library called p5.js, which was designed for generative
+              art. I learned basic geometric algorithms and pseudo JS syntax.
+            </p>
+            <p class="work__project-description2">
+              Each small p5 project I posted to an Instagram page called
+              "voxel.jp" among smaller projects/ideas. Some examples include
+              flow fields, oscillating spheres, and slime molds.
+            </p>
+            <a
+              class="btn work__project-btn"
+              href="https://www.instagram.com/voxel.jp/"
+              target="_blank"
+              >Voxel.jp</a
+            >
+          </div>
+          <!-- Project 5 -->
+          <h3 class="work__project-title">Huffman Tree Decoding Algorithm</h3>
+          <div class="work__img-wrapper work__image5">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/531x526"
+              data-src="/images/huffman.jpg"
+              alt="Chill image 5"
+            />
+          </div>
+          <div class="work__project work__content5">
+            <h3 class="work__project-subtitle">Huffman Binary Tree Decoder</h3>
+            <p class="work__project-description1">
+              This is an algorithm to reconstruct binary trees from preorder and
+              inorder traversals, optomizing data processing through decoding
+              variable-length codes.
+            </p>
+            <p class="work__project-description2">
+              I used a recursive-based solution to decode sequences of bits,
+              leveraging depth-first traversal for efficient processing to
+              output the tree's postorder traversal and the decoded sequence.
+            </p>
+            <a class="btn work__project-btn" href="#">Huffman Repository</a>
+          </div>
+          <!-- Project 6 -->
+          <h3 class="work__project-title">This Website!</h3>
+          <div class="work__img-wrapper work__image6">
+            <img
+              class="lazy loading"
+              src="https://placehold.co/531x526"
+              data-src="/images/website.jpg"
+              alt="Chill image 6"
+            />
+          </div>
+          <div class="work__project work__content6">
+            <h3 class="work__project-subtitle">This Website!</h3>
+            <p class="work__project-description1">
+              This is the first complete website I've built and hosted. I
+              utilized pure JavaScript, HTML, and CSS to define the UI and
+              interactivity of the site.
+            </p>
+            <p class="work__project-description2">
+              It features various portfolio-esque sections, lazy loading,
+              optomized viewport coverage for variable sized screens, and an
+              interactive nav bar (for mobile users).
+            </p>
+            <a class="btn work__project-btn" href="#">Portfolio Respository</a>
+          </div>
+        </div>
+      </section>
+      <section id="contact" class="contact container section">
+        <h2 class="contact__title">Get In Contact</h2>
+        <p class="contact__description">
+          I'm working to build a
+          <strong>network of like-minded people</strong> who share a passion for
+          software engineering and machine learning. I love discussing projects,
+          goals,and ideas. Please don’t hesitate to reach out, I’d love to
+          connect!
+        </p>
+
+        <div class="contact__btn-group">
+          <a
+            class="contact__btn btn"
+            href="mailto:mmasenheimer21@gmail.com"
+            target="_blank"
+            >Email</a
+          >
+          <a
+            class="contact__btn btn"
+            href="https://www.linkedin.com/in/mmasenheimer/"
+            target="_blank"
+            >Linkedin</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container section">
+      <h3 class="footer__title">~Michael Masenehimer~</h3>
+    </footer>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
