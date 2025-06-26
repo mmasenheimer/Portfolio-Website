@@ -12,7 +12,7 @@
 }
 
 .featured__title {
-  font-size: var(--size-2xl);
+  font-size: var(--size-xl);
   color: var(--clr-light);
   text-transform: uppercase;
 }
@@ -89,7 +89,7 @@
     font-size: var(--size-base);
   }
   .featured__title {
-    font-size: var(--size-3xl);
+    font-size: var(--size-2xl);
   }
   .featured__link {
     width: var(--size-3xl);
@@ -130,7 +130,7 @@
     font-size: var(--size-lg);
   }
   .featured__title {
-    font-size: var(--size-4xl);
+    font-size: var(--size-3xl);
   }
   .featured__link {
     width: var(--size-4xl);
@@ -154,7 +154,7 @@
     font-size: var(--size-xl);
   }
   .featured__title {
-    font-size: var(--size-5xl);
+    font-size: var(--size-4xl);
   }
   .featured__link {
     width: var(--size-5xl);
