@@ -157,14 +157,6 @@
     grid-area: content6;
   }
 
-  .work__content7 {
-    grid-area: content7;
-  }
-
-  .work__content8 {
-    grid-area: content8;
-  }
-
   .work__project {
     padding: 0 1rem;
   }
