@@ -55,7 +55,7 @@
   }
 
   .michael__title {
-    font-size: var(--size-4xl);
+    font-size: var(--size-3xl);
   }
 
   .michael__description {
@@ -87,7 +87,7 @@
   }
 
   .michael__title {
-    font-size: var(--size-6xl);
+    font-size: var(--size-5xl);
   }
 
   .michael__description {
@@ -114,7 +114,7 @@
   }
 
   .michael__title {
-    font-size: var(--size-7xl);
+    font-size: var(--size-6xl);
   }
 
   .michael__description {
