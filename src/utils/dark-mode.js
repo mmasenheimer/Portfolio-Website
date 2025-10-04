@@ -13,8 +13,8 @@ const darkMode = () => {
     if (document.body.classList.contains("light-mode")) {
       localStorage.setItem("theme", "light-mode");
     } else {
-      localStorage.removeItemI("theme");
-      document.body.removeAttribute("class");
+      localStorage.removeItem("theme");
+      document.body.classList.remove("light-mode");
     }
   };
 
