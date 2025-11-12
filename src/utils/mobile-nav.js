@@ -28,12 +28,3 @@ const mobileNav = () => {
 };
 
 export default mobileNav;
-
-// total = 0;
-// if (n % 2 == 0) {
-//   for (i=0; i<n; i++) total++
-
-// }
-// else {
-//   total += n;
-// }
