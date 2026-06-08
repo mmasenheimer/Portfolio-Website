@@ -5,10 +5,6 @@
   align-items: center;
   text-align: center;
   gap: 1rem;
-  background: var(--clr-panel);
-  border: 1px solid var(--clr-border);
-  border-radius: 20px;
-  padding: 3rem 2rem;
 }
 
 .contact__title {
@@ -38,7 +34,6 @@
 @media (min-width: 475px) {
   .contact {
     gap: 1.5rem;
-    padding: 3.5rem 2.5rem;
   }
 
   .contact__title {
@@ -54,12 +49,16 @@
   }
 }
 
+/* small */
+/* @media (min-width: 640px) {
+} */
+
+/* medium */
+/* @media (min-width: 768px) {
+} */
+
 /* large */
 @media (min-width: 1024px) {
-  .contact {
-    padding: 5rem 3rem;
-  }
-
   .contact__title {
     font-size: var(--size-4xl);
   }
@@ -91,3 +90,7 @@
     font-size: var(--size-xl);
   }
 }
+
+/* double xl */
+/* @media (min-width: 1536px) {
+} */

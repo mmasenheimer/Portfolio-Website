@@ -1,59 +1,18 @@
 .michael {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-/* Particle canvas injected by particles.js */
-#hero-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.michael__treeline {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 160px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.michael__treeline svg {
-  width: 100%;
-  height: 100%;
-}
-
-.michael__content {
-  position: relative;
-  z-index: 3;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  /* top: offset for fixed header  bottom: prevent overlap with treeline */
-  padding-top: 5rem;
-  padding-bottom: 180px;
-  width: 100%;
+  margin-top: 4rem;
+  padding-bottom: 2rem;
 }
 
 .michael__img {
   border-radius: 50%;
   width: 6rem;
   height: 6rem;
-  border: 2px solid rgba(90, 170, 53, 0.4);
-  box-shadow:
-    0 0 0 4px rgba(90, 170, 53, 0.1),
-    0 0 40px rgba(90, 170, 53, 0.2);
 }
 
 .michael__subtitle {
@@ -81,41 +40,9 @@
   font-size: var(--size-sm);
 }
 
-/* Scroll cue */
-.michael__scroll-cue {
-  position: absolute;
-  bottom: 172px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  opacity: 0.4;
-  animation: cue-bob 2.5s ease-in-out infinite;
-}
-
-.michael__scroll-cue span {
-  font-size: var(--size-xs);
-  color: var(--clr-slate400);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.michael__scroll-cue svg {
-  width: 1rem;
-  color: var(--clr-rose);
-}
-
-@keyframes cue-bob {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(6px); }
-}
-
 /* extra small */
 @media (min-width: 475px) {
-  .michael__content {
+  .michael {
     gap: 1.5rem;
   }
 
@@ -142,33 +69,18 @@
 }
 
 /* small */
-@media (min-width: 640px) {
-  .michael__treeline {
-    height: 200px;
-  }
+/* @media (min-width: 640px) {
+} */
 
-  .michael__content {
-    padding-bottom: 220px;
-  }
-
-  .michael__scroll-cue {
-    bottom: 212px;
-  }
-}
+/* medium */
+/* @media (min-width: 768px) {
+} */
 
 /* large */
 @media (min-width: 1024px) {
-  .michael__treeline {
-    height: 260px;
-  }
-
-  .michael__content {
-    gap: 1.75rem;
-    padding-bottom: 290px;
-  }
-
-  .michael__scroll-cue {
-    bottom: 272px;
+  .michael {
+    margin-top: 6rem;
+    padding-bottom: 3rem;
   }
 
   .michael__img {
@@ -195,10 +107,11 @@
 
 /* extra large */
 @media (min-width: 1280px) {
-  .michael__content {
+  .michael {
     gap: 2rem;
+    margin-top: 8rem;
+    padding-bottom: 4rem;
   }
-
   .michael__img {
     width: 10rem;
     height: 10rem;
@@ -220,3 +133,7 @@
     font-size: var(--size-xl);
   }
 }
+
+/* double xl */
+/* @media (min-width: 1536px) {
+} */
