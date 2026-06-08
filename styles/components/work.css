@@ -108,6 +108,7 @@
       "content6 image6"
       "image7 content7";
     place-items: center;
+    row-gap: 4rem;
   }
 
   .work__image1 {
@@ -282,6 +283,7 @@
   .work__container {
     width: 80%;
     margin: 0 auto;
+    row-gap: 6rem;
   }
 }
 

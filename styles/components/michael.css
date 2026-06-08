@@ -5,7 +5,8 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 4rem;
+  padding-bottom: 2rem;
 }
 
 .michael__img {
@@ -77,6 +78,11 @@
 
 /* large */
 @media (min-width: 1024px) {
+  .michael {
+    margin-top: 6rem;
+    padding-bottom: 3rem;
+  }
+
   .michael__img {
     width: 8rem;
     height: 8rem;
@@ -103,6 +109,8 @@
 @media (min-width: 1280px) {
   .michael {
     gap: 2rem;
+    margin-top: 8rem;
+    padding-bottom: 4rem;
   }
   .michael__img {
     width: 10rem;
