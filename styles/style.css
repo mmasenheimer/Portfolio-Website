@@ -1,16 +1,22 @@
 :root {
-  --clr-dark: #070a13;
-  --clr-light: #f1f5f9;
-  --clr-slate400: #94a3b8;
-  --clr-slate600: #475569;
-  --clr-slate800: #1e293b;
-  --clr-rose: #e11d48;
-  --clr-indigo: #4f46e5;
+  --clr-dark: #060e05;
+  --clr-light: #d4e8c0;
+  --clr-slate400: #6b9e55;
+  --clr-slate600: #4a7040;
+  --clr-slate800: #1e3418;
+  --clr-rose: #5aaa35;
+  --clr-indigo: #8bc34a;
 
-  /* rose rgb is rgb(225, 29, 75) */
-  /* indigo rgb is rgb(79, 70, 229) */
+  /* Forest-specific tokens */
+  --clr-bark: #4a2c1a;
+  --clr-moss: #1e3d12;
+  --clr-firefly: #bfff6b;
+  --clr-canopy: #0a1a08;
+  --clr-panel: rgba(10, 26, 8, 0.45);
+  --clr-border: rgba(90, 170, 53, 0.12);
+  --clr-glow: rgba(90, 170, 53, 0.3);
 
-  /* sizes */
+  /* Sizes */
   --size-xxs: 0.5rem;
   --size-xs: 0.75rem;
   --size-sm: 0.875rem;
@@ -38,16 +44,24 @@ html {
 }
 
 .light-mode {
-  --clr-light: #070a13;
-  --clr-dark: #f1f5f9;
-  --clr-slate400: #1e293b;
-  --clr-slate600: #1e293b;
-  --clr-slate800: #1e293b;
+  --clr-light: #071407;
+  --clr-dark: #eaf5e0;
+  --clr-slate400: #1e3418;
+  --clr-slate600: #2d5016;
+  --clr-slate800: #2d5016;
+  --clr-panel: rgba(212, 232, 192, 0.4);
+  --clr-border: rgba(45, 80, 22, 0.2);
 }
 
 body {
   font-family: "Montserrat", sans-serif;
   background-color: var(--clr-dark);
+  background-image:
+    radial-gradient(ellipse at 50% 100%, rgba(20, 60, 10, 0.55) 0%, transparent 65%),
+    radial-gradient(ellipse at 15% 60%, rgba(12, 40, 6, 0.3) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 60%, rgba(12, 40, 6, 0.25) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 0%, rgba(8, 30, 4, 0.4) 0%, transparent 60%);
+  background-attachment: fixed;
   color: var(--clr-light);
 }
 
@@ -78,36 +92,20 @@ a {
 }
 
 a:hover {
-  color: #9b1aac;
-  cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAZCAMAAAD63NUrAAAACVBMVEX///8AAAD///9+749PAAAAAXRSTlMAQObYZgAAAFZJREFUeNqdzksKwDAIAFHH+x+6lIYOVPOhs5OHJnES/5UkYKEkU7xjijSIm50iFh4fAXgYDd/yumVVRSwsqq/nRA3xVK0oo06d5U6DpQZ7PV7lMxH7LkaQAbYFwryzAAAAAElFTkSuQmCC),
-    auto;
+  color: var(--clr-indigo);
 }
 
 strong {
   color: var(--clr-indigo);
 }
 
-/*Scrollbar*/
-
+/* Scrollbar */
 body::-webkit-scrollbar {
   width: 8px;
 }
 
 body::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
-}
-
-body::-webkit-scrollbar-thumb {
-  background-color: var(--clr-rose);
-  outline: 1px solid var(--clr-rose);
-}
-
-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-body::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0a1a08;
   border-radius: 2px;
 }
 

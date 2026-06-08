@@ -18,7 +18,10 @@
             <a class="header__link" href="#about">About</a>
           </li>
           <li>
-            <a class="header__link" href="#featured">Work</a>
+            <a class="header__link" href="#skills">Skills</a>
+          </li>
+          <li>
+            <a class="header__link" href="#work">Work</a>
           </li>
           <li>
             <a class="header__link" href="#contact">Contact</a>
@@ -67,6 +70,7 @@
         </button>
       </nav>
     </header>
+
     <!-- Mobile navigation-->
     <div class="mobile-nav">
       <nav>
@@ -75,7 +79,10 @@
             <a class="mobile-nav__link" href="#about">About</a>
           </li>
           <li>
-            <a class="mobile-nav__link" href="#featured">Work</a>
+            <a class="mobile-nav__link" href="#skills">Skills</a>
+          </li>
+          <li>
+            <a class="mobile-nav__link" href="#work">Work</a>
           </li>
           <li>
             <a class="mobile-nav__link" href="#contact">Contact</a>
@@ -112,36 +119,76 @@
     <!--End of mobile navigation-->
 
     <main>
-      <section class="michael container">
-        <img
-          class="michael__img"
-          src="/images/resume-image-2.jpg"
-          alt="Michael Profile Picture"
-        />
-        <h2 class="michael__subtitle">Michael Masenheimer</h2>
-        <h1 class="michael__title">COMP SCI '27 @ U OF ARIZONA.<br /></h1>
-        <p class="michael__description">
-          I'm an <strong>aspiring software engineer</strong> studying Computer
-          Science, with experience in ML/AI research and
-          <strong> client-based software development.</strong> I've worked on
-          applications ranging from full-stack blog apps and chess engines to
-          generative visual art and ML hardware-based physics research. My focus
-          lies in
-          <strong>full-stack engineering and machine learning.</strong>
-        </p>
-        <a
-          class="michael__btn btn"
-          href="https://github.com/mmasenheimer"
-          target="_blank"
-          >GitHub</a
-        >
+      <!-- Hero Section -->
+      <section class="michael" id="hero">
+        <!-- Particle canvas injected by particles.js -->
+        <div id="hero-particles"></div>
+
+        <!-- 3-layer pine forest silhouette -->
+        <div class="michael__treeline" aria-hidden="true">
+          <svg viewBox="0 0 1920 260" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+            <!-- Layer 1: distant trees -->
+            <path
+              d="M0,260 L0,155 L45,65 L90,155 L130,80 L175,158 L215,72 L260,155 L300,85 L345,158 L385,70 L430,155 L475,80 L520,160 L560,75 L600,155 L645,68 L690,155 L730,78 L775,158 L815,72 L860,155 L905,80 L950,160 L990,72 L1035,155 L1075,78 L1120,158 L1165,70 L1210,155 L1255,80 L1300,160 L1340,75 L1385,155 L1430,68 L1475,158 L1515,72 L1560,155 L1605,80 L1650,158 L1695,70 L1740,155 L1785,78 L1830,158 L1875,72 L1920,155 L1920,260 Z"
+              fill="#0b1f09"
+              opacity="0.45"
+            />
+            <!-- Layer 2: mid-distance trees -->
+            <path
+              d="M0,260 L0,175 L65,90 L130,178 L175,120 L230,182 L290,102 L360,182 L415,118 L480,185 L545,102 L615,185 L680,115 L750,185 L815,108 L880,185 L950,110 L1020,185 L1085,115 L1155,185 L1225,102 L1295,185 L1360,115 L1435,185 L1505,110 L1575,185 L1650,108 L1720,185 L1790,115 L1860,182 L1920,168 L1920,260 Z"
+              fill="#081a06"
+              opacity="0.68"
+            />
+            <!-- Layer 3: foreground trees -->
+            <path
+              d="M0,260 L0,210 L85,140 L170,212 L225,168 L285,218 L355,148 L445,218 L525,162 L615,220 L700,150 L785,220 L870,160 L960,220 L1050,148 L1140,220 L1225,160 L1315,222 L1405,150 L1495,222 L1590,158 L1680,222 L1775,152 L1865,220 L1920,208 L1920,260 Z"
+              fill="#060e05"
+            />
+          </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="michael__content container">
+          <img
+            class="michael__img"
+            src="/images/resume-image-2.jpg"
+            alt="Michael Profile Picture"
+          />
+          <h2 class="michael__subtitle">Michael Masenheimer</h2>
+          <h1 class="michael__title">COMP SCI '27 @ U OF ARIZONA.<br /></h1>
+          <p class="michael__description">
+            I'm an <strong>aspiring software engineer</strong> studying Computer
+            Science, with experience in ML/AI research and
+            <strong> client-based software development.</strong> I've worked on
+            applications ranging from full-stack blog apps and chess engines to
+            generative visual art and ML hardware-based physics research. My focus
+            lies in
+            <strong>full-stack engineering and machine learning.</strong>
+          </p>
+          <a
+            class="michael__btn btn"
+            href="https://github.com/mmasenheimer"
+            target="_blank"
+            >GitHub</a
+          >
+        </div>
+
+        <!-- Scroll cue -->
+        <div class="michael__scroll-cue" aria-hidden="true">
+          <span>scroll</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
       </section>
+
+      <!-- About Section -->
       <section id="about" class="about container section">
         <div class="about__content">
           <h2 class="about__title">What I Bring to the Table</h2>
           <p class="about__description">
             I have academic experience in
-            <strong>data structures & algorithms, discrete math,</strong>
+            <strong>data structures &amp; algorithms, discrete math,</strong>
             calculus, and linear algebra along with project and research
             experience in
             <strong>Python, Java/SpringBoot, C++, Docker, and HTML/CSS.</strong>
@@ -150,7 +197,7 @@
             Backend Software Engineering Intern.
           </p>
           <p class="about__description">
-            I also work at the University of Arizona’s
+            I also work at the University of Arizona's
             <a href="https://lib.arizona.edu/catalyst" target="_blank"
               >student makerspace,</a
             >
@@ -193,6 +240,36 @@
           />
         </div>
       </section>
+
+      <!-- Interactive Skill Tree Section -->
+      <section id="skills" class="skills container section">
+        <h2 class="skills__title">Technology Roots</h2>
+        <p class="skills__description">
+          My tech stack visualized as a living tree — hover any branch to
+          explore the technologies within.
+        </p>
+        <div id="skill-tree-container" class="skill-tree-container"></div>
+        <div class="skills__legend">
+          <div class="skills__legend-item">
+            <span class="skills__legend-dot" style="background:#5aaa35"></span>
+            Backend
+          </div>
+          <div class="skills__legend-item">
+            <span class="skills__legend-dot" style="background:#27ae60"></span>
+            ML / AI Research
+          </div>
+          <div class="skills__legend-item">
+            <span class="skills__legend-dot" style="background:#6ab04c"></span>
+            Systems
+          </div>
+          <div class="skills__legend-item">
+            <span class="skills__legend-dot" style="background:#4a9e6a"></span>
+            Frontend
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Research Section -->
       <section id="featured" class="featured container section">
         <h3 class="featured__subtitle">
           <strong>Featured Research Project</strong>
@@ -270,45 +347,44 @@
               class="lazy loading"
               src="https://placehold.co/7680x4320"
               data-src="images/lhc.jpg"
-              alt="random picture"
+              alt="Large Hadron Collider"
             />
           </div>
-
           <div class="featured__img-wrapper">
             <img
               class="lazy loading"
               src="https://placehold.co/7680x4320"
               data-src="images/neuralnetwork.jpg"
-              alt="random picutre"
+              alt="Neural network diagram"
             />
           </div>
-
           <div class="featured__img-wrapper">
             <img
               class="lazy loading"
               src="https://placehold.co/7680x4320"
               data-src="images/resnetcpp.jpg"
-              alt="random picture"
+              alt="ResNet C++ code"
             />
           </div>
-
           <div class="featured__img-wrapper">
             <img
               class="lazy loading"
               src="https://placehold.co/7680x4320"
               data-src="images/vekengine.jpg"
-              alt="random picture"
+              alt="AMD VEK280 AI Engine"
             />
           </div>
         </div>
       </section>
-      <section class="work container section">
+
+      <!-- Projects Section -->
+      <section id="work" class="work container section">
         <h2 class="work__title">Projects</h2>
         <p class="work__description">
           These projects showcase my journey in computer science through
           coursework, research, and professional development. Each one includes
           a visual preview, and code repositories are accessible through the
-          buttons. I’ll continue updating this section and my
+          buttons. I'll continue updating this section and my
           <a href="https://github.com/mmasenheimer" target="_blank">GitHub </a
           >as projects progress.
         </p>
@@ -320,7 +396,7 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="/images/spotifyjava.jpg"
-              alt="First chill image"
+              alt="MakerThread app"
             />
           </div>
           <div class="work__project work__content1">
@@ -329,7 +405,7 @@
               MakerThread is a blog-style social media app built in SpringBoot
               for college students to share and explore makerspace projects. By
               connecting ideas with technology, it allows users to create posts
-              with tags and topics and browse a home page to discover others’
+              with tags and topics and browse a home page to discover others'
               projects and inspiration.
             </p>
             <p class="work__project-description2">
@@ -353,7 +429,7 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="/images/chess.jpg"
-              alt="First chill image"
+              alt="Chess engine"
             />
           </div>
           <div class="work__project work__content2">
@@ -384,7 +460,7 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="/images/spotifyjava.jpg"
-              alt="First chill image"
+              alt="Spotifly"
             />
           </div>
           <div class="work__project work__content3">
@@ -414,7 +490,7 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="/images/markov.jpg"
-              alt="Second chill image"
+              alt="Markov chain visualization"
             />
           </div>
           <div class="work__project work__content4">
@@ -444,7 +520,7 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="images/hydro.jpg"
-              alt="Chill image 3"
+              alt="Hydroponic garden"
             />
           </div>
           <div class="work__project work__content5">
@@ -474,7 +550,7 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="/images/voxel.jpg"
-              alt="Chill image 3"
+              alt="Voxel.jp generative art"
             />
           </div>
           <div class="work__project work__content6">
@@ -503,14 +579,14 @@
               class="lazy loading"
               src="https://placehold.co/531x526"
               data-src="/images/huffman.jpg"
-              alt="Chill image 5"
+              alt="Huffman tree"
             />
           </div>
           <div class="work__project work__content7">
             <h3 class="work__project-subtitle">Huffman Binary Tree Decoder</h3>
             <p class="work__project-description1">
               This is an algorithm to reconstruct binary trees from preorder and
-              inorder traversals, optomizing data processing through decoding
+              inorder traversals, optimizing data processing through decoding
               variable-length codes.
             </p>
             <p class="work__project-description2">
@@ -527,13 +603,14 @@
           </div>
         </div>
       </section>
+
+      <!-- Contact Section -->
       <section id="contact" class="contact container section">
         <h2 class="contact__title">Let's connect</h2>
         <p class="contact__description">
           <strong>Thank you for your time!</strong> Always open to chatting
           about CS, gardening, hiking, or just life. Drop me a message!
         </p>
-
         <div class="contact__btn-group">
           <a
             class="contact__btn btn"
@@ -545,14 +622,14 @@
             class="contact__btn btn"
             href="https://www.linkedin.com/in/mmasenheimer/"
             target="_blank"
-            >Linkedin</a
+            >LinkedIn</a
           >
         </div>
       </section>
     </main>
 
     <footer class="footer container section">
-      <h3 class="footer__title">~Michael Masenehimer~</h3>
+      <h3 class="footer__title">~ Michael Masenheimer ~</h3>
     </footer>
     <script type="module" src="./src/main.js"></script>
   </body>

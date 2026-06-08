@@ -20,10 +20,11 @@ const darkMode = () => {
 
   // Events
   themeToggleBtns.forEach((btn) =>
-    btn.addEventListener("click", handleThemeToggle)
+    btn.addEventListener("click", handleThemeToggle),
   );
 };
 
 export default darkMode;
 
 //C:\Users\mmase\portfolio\public\images\Michael_Masenheimer_Resume.pdf
+//C:\Users\mmase\portfolio\index.html
