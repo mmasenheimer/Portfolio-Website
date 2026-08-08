@@ -22,7 +22,7 @@
 }
 
 .michael__title {
-  color: var(--clr-slate400);
+  color: white;
   text-transform: uppercase;
   font-size: var(--size-4xl);
   letter-spacing: -0.05em;
@@ -33,6 +33,9 @@
   max-width: 60ch;
   font-size: var(--size-sm);
   color: var(--clr-slate600);
+  background-color: rgba(0, 0, 0, 0.55);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
 }
 
 .michael__btn {

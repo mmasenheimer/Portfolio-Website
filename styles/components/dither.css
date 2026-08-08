@@ -1,0 +1,21 @@
+.dither-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.hero-backdrop {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-backdrop__dither {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-backdrop .michael {
+  position: relative;
+  z-index: 1;
+}

@@ -1,5 +1,5 @@
 import Hero from "../components/Hero.jsx";
-import MagnetLines from "../components/MagnetLines.jsx";
+import Dither from "../components/Dither.jsx";
 import About from "../components/About.jsx";
 import Featured from "../components/Featured.jsx";
 import Contact from "../components/Contact.jsx";
@@ -7,22 +7,18 @@ import Contact from "../components/Contact.jsx";
 const Home = () => (
   <>
     <div className="hero-backdrop">
-      <MagnetLines
-        rows={20}
-        columns={40}
-        lineColor="var(--clr-slate800)"
-        lineWidth="2px"
-        lineHeight="24px"
-        baseAngle={-55}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          margin: 0,
-          zIndex: 0,
-        }}
-      />
+      <div className="hero-backdrop__dither">
+        <Dither
+          waveColor={[0.2627450980392157, 0.5686274509803921, 0.5647058823529412]}
+          disableAnimation={false}
+          enableMouseInteraction={false}
+          mouseRadius={0.3}
+          colorNum={27.2}
+          waveAmplitude={0.44}
+          waveFrequency={7}
+          waveSpeed={0.02}
+        />
+      </div>
       <Hero />
     </div>
     <hr className="container section-divider" />
