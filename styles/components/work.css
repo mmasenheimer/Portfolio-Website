@@ -61,7 +61,7 @@
 }
 
 .work__project:not(:last-child) {
-  margin-bottom: 5rem;
+  margin-bottom: 7rem;
 }
 
 .work__project-description1 {
@@ -127,7 +127,7 @@
       "content4 image4"
       "image5 content5";
     place-items: center;
-    row-gap: 4rem;
+    row-gap: 6rem;
   }
 
   .work__image1 {
@@ -278,7 +278,7 @@
   .work__container {
     width: 80%;
     margin: 0 auto;
-    row-gap: 6rem;
+    row-gap: 8rem;
   }
 }
 

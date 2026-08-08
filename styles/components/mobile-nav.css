@@ -46,8 +46,6 @@
 
 .mobile-nav__sun {
   display: block;
-  width: var(--size-xl);
-  height: var(--size-xl);
   color: var(--clr-slate600);
 }
 

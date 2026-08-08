@@ -4,6 +4,7 @@ import "../styles/modern-normalize.css";
 import "../styles/style.css";
 import "../styles/components/header.css";
 import "../styles/components/michael.css";
+import "../styles/components/magnet-lines.css";
 import "../styles/components/about.css";
 import "../styles/components/experience.css";
 import "../styles/components/leadership.css";

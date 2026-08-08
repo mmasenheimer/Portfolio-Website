@@ -103,6 +103,130 @@
   margin-top: 7rem;
 }
 
+.section-divider + .section {
+  margin-top: 0;
+}
+
+/* Standalone pages (Experience/Projects/Leadership) start right under
+   the nav with no divider above them - match the hero's top spacing. */
+main > .section:first-child {
+  margin-top: 2rem;
+}
+
+main + .footer {
+  margin-top: 3rem;
+}
+
+/* From Uiverse.io by ArturCodeCraft */
+.theme__icon {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.theme__icon > :nth-child(1) {
+  width: 14px;
+  height: 14px;
+  border-radius: 24px;
+  border: 1px solid currentColor;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: currentColor;
+  transition: width 0.4s, height 0.4s, border 0.4s, background-color 0.4s;
+  z-index: 10;
+}
+
+.theme__icon:hover > :nth-child(1) {
+  width: 24px;
+  height: 24px;
+}
+
+.theme__icon > :nth-child(2) {
+  width: 24px;
+  height: 24px;
+  border-radius: 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.4s;
+}
+
+.theme__icon:hover > :nth-child(2) {
+  transform: translate(-50%, -50%) rotate(-45deg) scale(0.8);
+}
+
+.theme__icon > :nth-child(2) > :nth-child(1) {
+  display: block;
+  width: 2px;
+  height: 24px;
+  border-radius: 2px;
+  position: relative;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: currentColor;
+}
+
+.theme__icon > :nth-child(2) > :nth-child(2) {
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  position: relative;
+  top: -54%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: currentColor;
+}
+
+.theme__icon > :nth-child(2) > :nth-child(3) {
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  position: relative;
+  top: -60%;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  background-color: currentColor;
+}
+
+.theme__icon > :nth-child(2) > :nth-child(4) {
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  position: relative;
+  top: -70%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-45deg);
+  background-color: currentColor;
+}
+
+.theme__icon > :nth-child(3) {
+  width: 20px;
+  height: 20px;
+  border-radius: 24px;
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  background-color: var(--clr-dark);
+  transition: top 0.4s, left 0.4s;
+  transition-delay: 0.2s;
+  z-index: 20;
+}
+
+.theme__icon:hover > :nth-child(3) {
+  top: 35%;
+  left: 40%;
+}
+
 .loading {
   filter: blur(20px) grayscale(100%);
 }
@@ -144,12 +268,21 @@
   .section-divider {
     margin: 5rem auto;
   }
+  main > .section:first-child {
+    margin-top: 3rem;
+  }
+  main + .footer {
+    margin-top: 4rem;
+  }
 }
 
 /* extra large */
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
+  }
+  main > .section:first-child {
+    margin-top: 4rem;
   }
 }
 
