@@ -17,14 +17,21 @@ const MagnetLines = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const items = container.querySelectorAll("span");
+    const items = Array.from(container.querySelectorAll("span"));
+    let centers = [];
+    let frame = null;
+    let pendingPointer = null;
 
-    const onPointerMove = (pointer) => {
-      items.forEach((item) => {
+    const measure = () => {
+      centers = items.map((item) => {
         const rect = item.getBoundingClientRect();
-        const centerX = rect.x + rect.width / 2;
-        const centerY = rect.y + rect.height / 2;
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+      });
+    };
 
+    const applyRotation = (pointer) => {
+      items.forEach((item, i) => {
+        const { x: centerX, y: centerY } = centers[i];
         const b = pointer.x - centerX;
         const a = pointer.y - centerY;
         const c = Math.sqrt(a * a + b * b) || 1;
@@ -35,16 +42,27 @@ const MagnetLines = ({
       });
     };
 
-    window.addEventListener("pointermove", onPointerMove);
+    const onPointerMove = (event) => {
+      pendingPointer = { x: event.clientX, y: event.clientY };
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        applyRotation(pendingPointer);
+      });
+    };
 
-    if (items.length) {
-      const middleIndex = Math.floor(items.length / 2);
-      const rect = items[middleIndex].getBoundingClientRect();
-      onPointerMove({ x: rect.x, y: rect.y });
+    measure();
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("resize", measure);
+
+    if (centers.length) {
+      applyRotation(centers[Math.floor(centers.length / 2)]);
     }
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("resize", measure);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, [rows, columns]);
 
