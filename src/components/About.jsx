@@ -1,10 +1,5 @@
 import LazyImage from "./LazyImage.jsx";
 
-const TECH_STACK = [
-  ["Java/Spring Boot", "Python", "C++", "JavaScript/Node.js"],
-  ["Linux/Docker", "Git", "PostgreSQL/MongoDB", "REST APIs"],
-];
-
 const About = () => (
   <section id="about" className="about container section">
     <div className="about__content">
@@ -45,19 +40,6 @@ const About = () => (
         across 10 local K-12 schools. My goal is to make every student feel
         supported and encouraged in their CS journey.
       </p>
-      <hr className="about__hr" />
-      <h3 className="about__subtitle">Technologies</h3>
-      <div className="about__ul-container">
-        {TECH_STACK.map((column) => (
-          <ul className="about__ul" key={column[0]}>
-            {column.map((item) => (
-              <li className="about__list" key={item}>
-                {item}
-              </li>
-            ))}
-          </ul>
-        ))}
-      </div>
     </div>
     <div className="about__img-wrapper">
       <LazyImage

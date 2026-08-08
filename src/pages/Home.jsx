@@ -16,7 +16,7 @@ const Home = () => (
           colorNum={27.2}
           waveAmplitude={0.44}
           waveFrequency={7}
-          waveSpeed={0.02}
+          waveSpeed={0.025}
         />
       </div>
       <Hero />

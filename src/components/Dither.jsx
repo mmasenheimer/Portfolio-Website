@@ -175,10 +175,15 @@ function DitheredWaves({
   mouseRadius,
 }) {
   const mesh = useRef(null);
+  const material = useRef(null);
   const mouseRef = useRef(new THREE.Vector2());
   const { viewport, size, gl } = useThree();
 
-  const waveUniformsRef = useRef({
+  // Initial uniform values only - once <shaderMaterial> mounts, R3F copies
+  // these into the material's own uniforms object. Runtime updates must
+  // mutate material.current.uniforms directly (via the ref below), not
+  // this object, or they never reach the GPU.
+  const initialUniforms = useRef({
     time: new THREE.Uniform(0),
     resolution: new THREE.Uniform(new THREE.Vector2(0, 0)),
     waveSpeed: new THREE.Uniform(waveSpeed),
@@ -191,10 +196,11 @@ function DitheredWaves({
   });
 
   useEffect(() => {
+    if (!material.current) return;
     const dpr = gl.getPixelRatio();
     const w = Math.floor(size.width * dpr);
     const h = Math.floor(size.height * dpr);
-    const res = waveUniformsRef.current.resolution.value;
+    const res = material.current.uniforms.resolution.value;
     if (res.x !== w || res.y !== h) {
       res.set(w, h);
     }
@@ -202,7 +208,8 @@ function DitheredWaves({
 
   const prevColor = useRef([...waveColor]);
   useFrame(({ clock }) => {
-    const u = waveUniformsRef.current;
+    if (!material.current) return;
+    const u = material.current.uniforms;
 
     if (!disableAnimation) {
       u.time.value = clock.getElapsedTime();
@@ -237,13 +244,14 @@ function DitheredWaves({
       <mesh ref={mesh} scale={[viewport.width, viewport.height, 1]}>
         <planeGeometry args={[1, 1]} />
         <shaderMaterial
+          ref={material}
           vertexShader={waveVertexShader}
           fragmentShader={waveFragmentShader}
-          uniforms={waveUniformsRef.current}
+          uniforms={initialUniforms.current}
         />
       </mesh>
 
-      <EffectComposer>
+      <EffectComposer multisampling={0}>
         <RetroEffect colorNum={colorNum} pixelSize={pixelSize} />
       </EffectComposer>
 
