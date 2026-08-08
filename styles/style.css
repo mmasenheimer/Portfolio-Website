@@ -1,14 +1,14 @@
 :root {
-  --clr-dark: #070a13;
+  --clr-dark: #000000;
   --clr-light: #f1f5f9;
   --clr-slate400: #94a3b8;
   --clr-slate600: #475569;
   --clr-slate800: #1e293b;
   --clr-rose: #e11d48;
-  --clr-indigo: #4f46e5;
+  --clr-accent: #2dd4bf;
 
   /* rose rgb is rgb(225, 29, 75) */
-  /* indigo rgb is rgb(79, 70, 229) */
+  /* accent rgb is rgb(45, 212, 191) */
 
   /* sizes */
   --size-xxs: 0.5rem;
@@ -84,7 +84,7 @@ a:hover {
 }
 
 strong {
-  color: var(--clr-indigo);
+  color: var(--clr-accent);
 }
 
 /*Scrollbar*/

@@ -1,6 +1,6 @@
 .featured__subtitle {
   font-size: var(--size-sm);
-  color: var(--clr-indigo);
+  color: var(--clr-accent);
   text-transform: capitalize;
   font-weight: 400;
 }

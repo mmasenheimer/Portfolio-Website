@@ -1,3 +1,5 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import "../styles/modern-normalize.css";
 import "../styles/style.css";
 import "../styles/components/header.css";
@@ -9,11 +11,10 @@ import "../styles/components/contact.css";
 import "../styles/components/footer.css";
 import "../styles/components/mobile-nav.css";
 import "../styles/utils.css";
+import App from "./App.jsx";
 
-import mobileNav from "./utils/mobile-nav";
-import darkMode from "./utils/dark-mode";
-import lazyLoading from "./utils/lazy-loading";
-
-mobileNav();
-darkMode();
-lazyLoading();
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
