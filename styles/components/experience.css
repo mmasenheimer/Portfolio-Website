@@ -1,0 +1,289 @@
+.experience {
+  text-align: center;
+}
+
+.experience__title {
+  font-size: var(--size-2xl);
+  color: var(--clr-light);
+}
+
+.experience__description {
+  max-width: 60ch;
+  font-size: var(--size-sm);
+  color: var(--clr-slate600);
+  margin: 1rem auto 2rem;
+}
+
+.experience__entry {
+  border: 1px solid var(--clr-slate800);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.experience__entry:not(:last-child) {
+  margin-bottom: 2rem;
+}
+
+.experience__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.experience__img-wrapper {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.experience__img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.experience__entry-title {
+  font-size: var(--size-lg);
+  color: var(--clr-light);
+}
+
+.experience__entry-meta {
+  font-size: var(--size-xs);
+  color: var(--clr-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.15em;
+}
+
+.experience__summary {
+  max-width: 80ch;
+  font-size: var(--size-sm);
+  color: var(--clr-slate600);
+  margin-bottom: 1.5rem;
+}
+
+.experience__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.75rem;
+}
+
+.experience__stat {
+  border: 1px solid var(--clr-slate800);
+  border-radius: 10px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.experience__stat-value {
+  display: block;
+  font-size: var(--size-xl);
+  font-weight: 700;
+  color: var(--clr-accent);
+}
+
+.experience__stat-label {
+  display: block;
+  font-size: var(--size-xxs);
+  color: var(--clr-slate600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25em;
+}
+
+.experience__cta {
+  margin-top: 0.5rem;
+}
+
+/* Pipeline (IBM) */
+
+.pipeline {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.pipeline__step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pipeline__index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: var(--clr-accent);
+  color: #06201c;
+  font-size: var(--size-xs);
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.pipeline__label {
+  font-size: var(--size-sm);
+  color: var(--clr-light);
+  font-weight: 600;
+}
+
+.pipeline__step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0.875rem;
+  top: 1.75rem;
+  width: 1px;
+  height: 0.75rem;
+  background-color: var(--clr-slate800);
+}
+
+/* Research spotlight (CERN) */
+
+.research-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.research-stats__value {
+  display: block;
+  font-size: var(--size-4xl);
+  font-weight: 700;
+  color: var(--clr-accent);
+  line-height: 1;
+}
+
+.research-stats__label {
+  display: block;
+  font-size: var(--size-xs);
+  color: var(--clr-slate600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.35em;
+}
+
+/* Skill chips (Maker Studio) */
+
+.skill-chips {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.skill-chips__chip {
+  border: 1px solid var(--clr-accent);
+  color: var(--clr-accent);
+  border-radius: 9999px;
+  padding: 0.4em 1em;
+  font-size: var(--size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* extra small */
+@media (min-width: 475px) {
+  .experience__title {
+    font-size: var(--size-3xl);
+  }
+
+  .experience__description {
+    font-size: var(--size-base);
+    margin: 1.5rem auto 2rem;
+  }
+
+  .experience__summary {
+    font-size: var(--size-base);
+  }
+}
+
+/* small */
+@media (min-width: 640px) {
+  .pipeline {
+    flex-direction: row;
+    gap: 0;
+    position: relative;
+  }
+
+  .pipeline::before {
+    content: "";
+    position: absolute;
+    top: 0.875rem;
+    left: 1.75rem;
+    right: 1.75rem;
+    height: 1px;
+    background-color: var(--clr-slate800);
+  }
+
+  .pipeline__step {
+    flex: 1;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .pipeline__step:not(:last-child)::after {
+    display: none;
+  }
+}
+
+/* medium */
+/* @media (min-width: 768px) {
+} */
+
+/* large */
+@media (min-width: 1024px) {
+  .experience__title {
+    font-size: var(--size-4xl);
+  }
+
+  .experience__description {
+    font-size: var(--size-lg);
+  }
+
+  .experience__entry {
+    padding: 2rem;
+  }
+
+  .experience__entry-title {
+    font-size: var(--size-xl);
+  }
+
+  .experience__summary {
+    font-size: var(--size-lg);
+  }
+
+  .research-stats__value {
+    font-size: var(--size-5xl);
+  }
+}
+
+/* extra large */
+@media (min-width: 1280px) {
+  .experience__title {
+    font-size: var(--size-5xl);
+  }
+
+  .experience__description {
+    font-size: var(--size-xl);
+    margin: 2rem auto;
+  }
+}
+
+/* double xl */
+/* @media (min-width: 1536px) {
+} */

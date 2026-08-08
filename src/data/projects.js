@@ -1,9 +1,23 @@
 const projects = [
   {
     title: "CATalyst Studios Scheduling",
-    imageAlt: "CATalyst Studios Scheduling app preview",
-    imagePlaceholder: "https://placehold.co/531x526",
-    imageSrc: "https://placehold.co/531x526?text=CATalyst+Scheduling",
+    images: [
+      {
+        alt: "CATalyst Studios Scheduling dashboard",
+        placeholder: "https://placehold.co/531x526",
+        src: "https://placehold.co/531x526?text=Dashboard",
+      },
+      {
+        alt: "CATalyst Studios Scheduling calendar view",
+        placeholder: "https://placehold.co/531x526",
+        src: "https://placehold.co/531x526?text=Schedule",
+      },
+      {
+        alt: "CATalyst Studios Scheduling shift requests",
+        placeholder: "https://placehold.co/531x526",
+        src: "https://placehold.co/531x526?text=Shift+Requests",
+      },
+    ],
     description1:
       "A scheduling platform built to replace a legacy paid service for the U of A Libraries makerspace, saving roughly $350/year while adding maker-studio-specific scheduling logic and full workplace Slack integration.",
     description2:
@@ -13,9 +27,23 @@ const projects = [
   },
   {
     title: "ECOMAP",
-    imageAlt: "ECOMAP app preview",
-    imagePlaceholder: "https://placehold.co/531x526",
-    imageSrc: "https://placehold.co/531x526?text=ECOMAP",
+    images: [
+      {
+        alt: "ECOMAP map and trip planner",
+        placeholder: "https://placehold.co/531x526",
+        src: "https://placehold.co/531x526?text=Trip+Planner",
+      },
+      {
+        alt: "ECOMAP eco-score leaderboard",
+        placeholder: "https://placehold.co/531x526",
+        src: "https://placehold.co/531x526?text=Leaderboard",
+      },
+      {
+        alt: "ECOMAP social feed",
+        placeholder: "https://placehold.co/531x526",
+        src: "https://placehold.co/531x526?text=Feed",
+      },
+    ],
     description1:
       "Built at HackArizona 2026, ECOMAP is a full-stack, cloud-based app connected to the Google Maps API that optimizes trips across up to 5 combined modes of transportation, with eco-score leaderboards and a social-media style UI.",
     description2:

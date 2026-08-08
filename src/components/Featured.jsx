@@ -1,4 +1,5 @@
 import LazyImage from "./LazyImage.jsx";
+import PillButton from "./PillButton.jsx";
 
 const FEATURED_IMAGES = [
   { src: "/images/lhc.jpg", alt: "LHC tunnel and detector" },
@@ -13,13 +14,9 @@ const FEATURED_IMAGES = [
   },
 ];
 
-const TECH_STACK = [
-  "C++",
-  "PyTorch",
-  "Docker",
-  "AMD Versal AI Engines",
-  "Vitis IDE",
-  "Git",
+const RESEARCH_TIMELINE = [
+  { date: "Apr 2025", label: "Joined the ATLAS research team" },
+  { date: "Present", label: "Deploying quantized models on AMD AI Engines" },
 ];
 
 const Featured = () => (
@@ -27,30 +24,16 @@ const Featured = () => (
     <h3 className="featured__subtitle">
       <strong>Featured Research Project</strong>
     </h3>
-    <div className="featured__wrapper">
-      <h2 className="featured__title">
-        Trained Neural Networks for Particle Physics
-      </h2>
-      <a
-        className="featured__link"
-        href="/images/mmasenheimer_research.pdf"
-        target="_blank"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-          />
-        </svg>
-      </a>
-    </div>
+    <h2 className="featured__title">
+      Trained Neural Networks for Particle Physics
+    </h2>
+    <PillButton
+      className="featured__link"
+      href="/images/mmasenheimer_research.pdf"
+      target="_blank"
+    >
+      Check it out!
+    </PillButton>
 
     <p className="featured__description">
       The Large Hadron Collider (LHC) is the world's largest particle
@@ -76,28 +59,15 @@ const Featured = () => (
       we're simulating deployment on Vitis FPGAs to support real-time
       decision-making.
     </p>
-    <div className="featured__info-container">
-      <div>
-        <h3 className="featured__label">Tech stack</h3>
-        <ul className="featured__tech-stack">
-          {TECH_STACK.map((tech) => (
-            <li className="featured__info" key={tech}>
-              {tech}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <h3 className="featured__label">Research Type</h3>
-        <p className="featured__info">
-          Applied ML and FPGA research for HEP instrumentation
-        </p>
-      </div>
-      <div>
-        <h3 className="featured__label">Timeline</h3>
-        <p className="featured__info">April 2025 - Present</p>
-      </div>
-    </div>
+    <ol className="research-timeline">
+      {RESEARCH_TIMELINE.map((node) => (
+        <li className="research-timeline__node" key={node.date + node.label}>
+          <span className="research-timeline__dot"></span>
+          <span className="research-timeline__date">{node.date}</span>
+          <span className="research-timeline__label">{node.label}</span>
+        </li>
+      ))}
+    </ol>
     <div className="featured__img-container">
       {FEATURED_IMAGES.map(({ src, alt }) => (
         <div className="featured__img-wrapper" key={src}>

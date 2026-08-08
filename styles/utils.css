@@ -28,7 +28,7 @@
   text-decoration: none;
   font-size: 17px;
   padding: 1em 2.7em;
-  font-weight: 500;
+  font-weight: 700;
   background: #1f2937;
   color: white;
   border: none;
@@ -76,6 +76,11 @@
   height: 14em;
 }
 
+.btn:hover,
+.btn:active {
+  color: white;
+}
+
 .btn:active {
   transform: scale(0.97);
 }
@@ -86,7 +91,12 @@
   margin-right: auto;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-  margin: 0 auto;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--clr-slate800);
+  margin: 3rem auto;
 }
 
 .section {
@@ -130,6 +140,9 @@
   }
   .section {
     margin-top: 14rem;
+  }
+  .section-divider {
+    margin: 5rem auto;
   }
 }
 

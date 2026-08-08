@@ -22,7 +22,6 @@
 .contact__btn {
   font-size: var(--size-sm);
   text-align: center;
-  width: 125px;
 }
 
 .contact__btn-group {

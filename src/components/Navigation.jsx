@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import useDarkMode from "../hooks/useDarkMode.js";
 import ThemeIcon from "./ThemeIcon.jsx";
 import PillButton from "./PillButton.jsx";
 
 const NAV_LINKS = [
-  { href: "#about", label: "About" },
-  { href: "#featured", label: "Work" },
-  { href: "#contact", label: "Contact" },
+  { to: "/", label: "Home" },
+  { to: "/experience", label: "Experience" },
+  { to: "/projects", label: "Projects" },
+  { to: "/leadership", label: "Leadership" },
 ];
 
 const Navigation = () => {
@@ -19,16 +21,27 @@ const Navigation = () => {
 
   return (
     <>
-      <header className="header container">
-        <nav>
+      <header className="header">
+        <nav className="header__nav container">
           <ul className="header__menu">
-            {NAV_LINKS.map(({ href, label }) => (
-              <li key={href}>
-                <a className="header__link" href={href}>
+            {NAV_LINKS.map(({ to, label }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end
+                  className={({ isActive }) =>
+                    `header__link${isActive ? " header__link--active" : ""}`
+                  }
+                >
                   {label}
-                </a>
+                </NavLink>
               </li>
             ))}
+            <li>
+              <Link className="header__link" to="/#contact">
+                Contact
+              </Link>
+            </li>
             <li className="header__line"></li>
             <li>
               <button className="header__sun" onClick={toggleTheme}>
@@ -72,17 +85,29 @@ const Navigation = () => {
       >
         <nav>
           <ul className="mobile-nav__menu">
-            {NAV_LINKS.map(({ href, label }) => (
-              <li key={href}>
-                <a
-                  className="mobile-nav__link"
-                  href={href}
+            {NAV_LINKS.map(({ to, label }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end
+                  className={({ isActive }) =>
+                    `mobile-nav__link${isActive ? " mobile-nav__link--active" : ""}`
+                  }
                   onClick={() => setIsOpen(false)}
                 >
                   {label}
-                </a>
+                </NavLink>
               </li>
             ))}
+            <li>
+              <Link
+                className="mobile-nav__link"
+                to="/#contact"
+                onClick={() => setIsOpen(false)}
+              >
+                Contact
+              </Link>
+            </li>
             <li className="mobile-nav__link-line"></li>
             <li>
               <button className="mobile-nav__sun" onClick={toggleTheme}>

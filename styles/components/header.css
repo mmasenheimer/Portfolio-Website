@@ -1,11 +1,18 @@
 .header {
+  width: 100%;
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  justify-content: center;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--clr-slate800);
   position: relative;
   z-index: 9999;
+}
+
+.header__nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .header__menu {
@@ -17,6 +24,11 @@
   width: var(--size-2xl);
   height: var(--size-2xl);
   display: block;
+}
+
+.header__resume.btn {
+  padding: 0.6em 1.6em;
+  font-size: 14px;
 }
 
 /* extra small */
@@ -47,7 +59,11 @@
   }
 
   .header__link:hover {
-    color: var(--clr-rose);
+    color: var(--clr-accent);
+  }
+
+  .header__link--active {
+    color: var(--clr-accent);
   }
 
   .header__line {
@@ -62,9 +78,6 @@
     height: var(--size-base);
   }
 
-  .header__resume {
-    font-size: var(--size-xs);
-  }
   .header__bars {
     display: none;
   }
@@ -79,10 +92,6 @@
   .header__sun {
     width: var(--size-xl);
     height: var(--size-xl);
-  }
-
-  .header__resume {
-    font-size: var(--size-sm);
   }
 }
 

@@ -5,6 +5,8 @@ import "../styles/style.css";
 import "../styles/components/header.css";
 import "../styles/components/michael.css";
 import "../styles/components/about.css";
+import "../styles/components/experience.css";
+import "../styles/components/leadership.css";
 import "../styles/components/featured.css";
 import "../styles/components/work.css";
 import "../styles/components/contact.css";

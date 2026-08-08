@@ -9,7 +9,7 @@ const Hero = () => (
     />
     <h2 className="michael__subtitle">Michael Masenheimer</h2>
     <h1 className="michael__title">
-      COMP SCI '27 @ U OF ARIZONA.
+      COMP SCI '27 @ U OF ARIZONA
       <br />
     </h1>
     <p className="michael__description">

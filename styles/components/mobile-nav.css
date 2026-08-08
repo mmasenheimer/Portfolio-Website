@@ -32,7 +32,11 @@
 }
 
 .mobile-nav__link:hover {
-  color: var(--clr-rose);
+  color: var(--clr-accent);
+}
+
+.mobile-nav__link--active {
+  color: var(--clr-accent);
 }
 
 .mobile-nav__link-line {
@@ -47,6 +51,7 @@
   color: var(--clr-slate600);
 }
 
-.mobile-nav__btn {
-  font-size: var(--size-sm);
+.mobile-nav__btn.btn {
+  padding: 0.6em 1.6em;
+  font-size: 14px;
 }

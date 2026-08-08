@@ -1,23 +1,26 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation.jsx";
-import Hero from "./components/Hero.jsx";
-import About from "./components/About.jsx";
-import Featured from "./components/Featured.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
+import Home from "./pages/Home.jsx";
+import Experience from "./components/Experience.jsx";
 import Work from "./components/Work.jsx";
-import Contact from "./components/Contact.jsx";
+import Leadership from "./components/Leadership.jsx";
 import Footer from "./components/Footer.jsx";
 
 const App = () => (
-  <>
+  <BrowserRouter>
+    <ScrollToTop />
     <Navigation />
     <main>
-      <Hero />
-      <About />
-      <Featured />
-      <Work />
-      <Contact />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/experience" element={<Experience />} />
+        <Route path="/projects" element={<Work />} />
+        <Route path="/leadership" element={<Leadership />} />
+      </Routes>
     </main>
     <Footer />
-  </>
+  </BrowserRouter>
 );
 
 export default App;

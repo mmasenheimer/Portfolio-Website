@@ -5,12 +5,6 @@
   font-weight: 400;
 }
 
-.featured__wrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .featured__title {
   font-size: var(--size-2xl);
   color: var(--clr-light);
@@ -18,8 +12,8 @@
 }
 
 .featured__link {
-  width: var(--size-2xl);
-  height: var(--size-2xl);
+  display: inline-block;
+  margin-top: 1rem;
 }
 
 .featured__description {
@@ -29,29 +23,55 @@
   margin: 1rem 0;
 }
 
-.featured__info-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.featured__info-container div {
-  flex: 1;
-  min-width: 250px;
-}
-
-.featured__label {
-  font-size: var(--size-base);
-  text-transform: capitalize;
-  margin-bottom: 0.25em;
-}
-
-.featured__tech-stack {
-  padding: 0;
+.research-timeline {
   list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  position: relative;
 }
 
-.featured__info {
+.research-timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  width: 1px;
+  background-color: var(--clr-slate800);
+}
+
+.research-timeline__node {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.research-timeline__node:not(:last-child) {
+  margin-bottom: 1rem;
+}
+
+.research-timeline__dot {
+  position: absolute;
+  left: 0;
+  top: 0.4em;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background-color: var(--clr-accent);
+}
+
+.research-timeline__date {
+  font-size: var(--size-xs);
+  color: var(--clr-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.research-timeline__label {
   font-size: var(--size-sm);
   color: var(--clr-slate600);
 }
@@ -91,19 +111,11 @@
   .featured__title {
     font-size: var(--size-3xl);
   }
-  .featured__link {
-    width: var(--size-3xl);
-    height: var(--size-3xl);
-  }
   .featured__description {
     font-size: var(--size-base);
     margin: 1.5rem 0;
   }
-  .featured__label {
-    font-size: var(--size-lg);
-  }
-
-  .featured__info {
+  .research-timeline__label {
     font-size: var(--size-base);
   }
   .featured__img-container {
@@ -132,18 +144,13 @@
   .featured__title {
     font-size: var(--size-4xl);
   }
-  .featured__link {
-    width: var(--size-4xl);
-    height: var(--size-4xl);
-  }
   .featured__description {
     font-size: var(--size-lg);
   }
-  .featured__label {
-    font-size: var(--size-xl);
+  .research-timeline__date {
+    font-size: var(--size-sm);
   }
-
-  .featured__info {
+  .research-timeline__label {
     font-size: var(--size-lg);
   }
 }
@@ -156,19 +163,11 @@
   .featured__title {
     font-size: var(--size-5xl);
   }
-  .featured__link {
-    width: var(--size-5xl);
-    height: var(--size-5xl);
-  }
   .featured__description {
     font-size: var(--size-xl);
     margin: 2rem 0;
   }
-  .featured__label {
-    font-size: var(--size-2xl);
-  }
-
-  .featured__info {
+  .research-timeline__label {
     font-size: var(--size-xl);
   }
   .featured__img-container {
