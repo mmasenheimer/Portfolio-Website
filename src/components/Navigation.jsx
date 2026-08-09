@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: "/experience", label: "Experience" },
   { to: "/projects", label: "Projects" },
   { to: "/leadership", label: "Leadership" },
+  { to: "/hobbies", label: "Hobbies" },
 ];
 
 const Navigation = () => {

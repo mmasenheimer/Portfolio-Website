@@ -1,0 +1,132 @@
+.hobbies {
+  text-align: center;
+}
+
+.hobbies__title {
+  font-size: var(--size-2xl);
+  color: var(--clr-light);
+}
+
+.hobbies__description {
+  max-width: 60ch;
+  font-size: var(--size-sm);
+  color: var(--clr-slate600);
+  margin: 1rem auto;
+}
+
+.hobbies__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.hobby-card__img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  aspect-ratio: 4 / 3;
+}
+
+.hobby-card__img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hobby-card__img-wrapper::after {
+  content: "";
+  background-color: rgba(79, 70, 229, 0.15);
+  position: absolute;
+  inset: 0;
+  transition: background-color 0.3s;
+}
+
+.hobby-card__img-wrapper:hover::after {
+  background-color: rgba(79, 70, 229, 0.05);
+}
+
+.hobby-card__caption {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 1.5rem 1.25rem 1.25rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+  z-index: 2;
+}
+
+.hobby-card__caption-title {
+  color: #f1f5f9;
+  font-weight: 700;
+  font-size: var(--size-lg);
+}
+
+.hobby-card__description {
+  margin-top: 0.75rem;
+  font-size: var(--size-sm);
+  color: var(--clr-slate600);
+}
+
+/* extra small */
+@media (min-width: 475px) {
+  .hobbies__title {
+    font-size: var(--size-3xl);
+  }
+
+  .hobbies__description {
+    font-size: var(--size-base);
+    margin: 1.5rem auto;
+  }
+
+  .hobby-card__description {
+    font-size: var(--size-base);
+  }
+}
+
+/* small */
+@media (min-width: 640px) {
+  .hobbies__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* medium */
+/* @media (min-width: 768px) {
+} */
+
+/* large */
+@media (min-width: 1024px) {
+  .hobbies__title {
+    font-size: var(--size-4xl);
+  }
+
+  .hobbies__description {
+    font-size: var(--size-lg);
+  }
+
+  .hobby-card__caption-title {
+    font-size: var(--size-xl);
+  }
+
+  .hobby-card__description {
+    font-size: var(--size-lg);
+  }
+}
+
+/* extra large */
+@media (min-width: 1280px) {
+  .hobbies__title {
+    font-size: var(--size-5xl);
+  }
+
+  .hobbies__description {
+    font-size: var(--size-xl);
+    margin: 2rem auto;
+  }
+}
+
+/* double xl */
+/* @media (min-width: 1536px) {
+} */
