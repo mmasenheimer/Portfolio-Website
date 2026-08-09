@@ -7,11 +7,6 @@ const FEATURED_IMAGES = [
     src: "/images/neuralnetwork.jpg",
     alt: "Neural network architecture diagram",
   },
-  { src: "/images/resnetcpp.jpg", alt: "C++ neural network code" },
-  {
-    src: "/images/vekengine.jpg",
-    alt: "AMD Versal VEK280 AI Engine board",
-  },
 ];
 
 const RESEARCH_TIMELINE = [
@@ -35,49 +30,57 @@ const Featured = () => (
       Check it out!
     </PillButton>
 
-    <p className="featured__description">
-      The Large Hadron Collider (LHC) is the world's largest particle
-      accelerator, operated by a nuclear physics lab near Geneva called
-      CERN. My research is through the{" "}
-      <a href="https://atlas.cern/" target="_blank">
-        ATLAS Experiment,
-      </a>{" "}
-      one of the primary particle collision detectors on the LHC. Dr. Rachel
-      Hyneman and I research{" "}
-      <strong>quantized feedforward neural networks</strong> for the ATLAS
-      forward calorimeter, using hardware-based machine learning to
-      determine which proton collisions are worth keeping in real time.
-    </p>
-    <p className="featured__description">
-      I design and quantize custom feedforward neural networks in{" "}
-      <strong>C++ and PyTorch,</strong> then develop and maintain kernel
-      tile code and programmable logic on AMD Versal AI Engines to
-      orchestrate data flow and minimize bit-level overhead. Benchmarking
-      latency, throughput, and quantization tradeoffs across network
-      designs, our current pipeline achieves roughly{" "}
-      <strong>7 million packets per second at 97% accuracy,</strong> and
-      we're simulating deployment on Vitis FPGAs to support real-time
-      decision-making.
-    </p>
-    <ol className="research-timeline">
-      {RESEARCH_TIMELINE.map((node) => (
-        <li className="research-timeline__node" key={node.date + node.label}>
-          <span className="research-timeline__dot"></span>
-          <span className="research-timeline__date">{node.date}</span>
-          <span className="research-timeline__label">{node.label}</span>
-        </li>
-      ))}
-    </ol>
-    <div className="featured__img-container">
-      {FEATURED_IMAGES.map(({ src, alt }) => (
-        <div className="featured__img-wrapper" key={src}>
-          <LazyImage
-            placeholder="https://placehold.co/7680x4320"
-            src={src}
-            alt={alt}
-          />
-        </div>
-      ))}
+    <div className="featured__body">
+      <div className="featured__content">
+        <p className="featured__description">
+          The Large Hadron Collider (LHC) is the world's largest particle
+          accelerator, operated by a nuclear physics lab near Geneva called
+          CERN. My research is through the{" "}
+          <a href="https://atlas.cern/" target="_blank">
+            ATLAS Experiment,
+          </a>{" "}
+          one of the primary particle collision detectors on the LHC. Dr.
+          Rachel Hyneman and I research{" "}
+          <strong>quantized feedforward neural networks</strong> for the
+          ATLAS forward calorimeter, using hardware-based machine learning
+          to determine which proton collisions are worth keeping in real
+          time.
+        </p>
+        <p className="featured__description">
+          I design and quantize custom feedforward neural networks in{" "}
+          <strong>C++ and PyTorch,</strong> then develop and maintain kernel
+          tile code and programmable logic on AMD Versal AI Engines to
+          orchestrate data flow and minimize bit-level overhead.
+          Benchmarking latency, throughput, and quantization tradeoffs
+          across network designs, our current pipeline achieves roughly{" "}
+          <strong>7 million packets per second at 97% accuracy,</strong> and
+          we're simulating deployment on Vitis FPGAs to support real-time
+          decision-making.
+        </p>
+        <ol className="research-timeline">
+          {RESEARCH_TIMELINE.map((node) => (
+            <li
+              className="research-timeline__node"
+              key={node.date + node.label}
+            >
+              <span className="research-timeline__dot"></span>
+              <span className="research-timeline__date">{node.date}</span>
+              <span className="research-timeline__label">{node.label}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className="featured__img-container">
+        {FEATURED_IMAGES.map(({ src, alt }) => (
+          <div className="featured__img-wrapper" key={src}>
+            <LazyImage
+              placeholder="https://placehold.co/7680x4320"
+              src={src}
+              alt={alt}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 );

@@ -4,10 +4,10 @@
   --clr-slate400: #94a3b8;
   --clr-slate600: #475569;
   --clr-slate800: #1e293b;
-  --clr-rose: #e11d48;
+  --clr-rose: #eac117;
   --clr-accent: #2dd4bf;
 
-  /* rose rgb is rgb(225, 29, 75) */
+  /* rose (honey) rgb is rgb(234, 193, 23) */
   /* accent rgb is rgb(45, 212, 191) */
 
   /* sizes */
@@ -99,7 +99,7 @@ body::-webkit-scrollbar-track {
 }
 
 body::-webkit-scrollbar-thumb {
-  background-color: #d3401f;
+  background-color: #d6249f;
   border-radius: 2px;
-  outline: 1px solid #d3401f;
+  outline: 1px solid #d6249f;
 }

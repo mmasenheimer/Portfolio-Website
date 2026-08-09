@@ -13,6 +13,10 @@
   text-transform: capitalize;
 }
 
+.contact__title .fold-text {
+  text-transform: none;
+}
+
 .contact__description {
   font-size: var(--size-sm);
   color: var(--clr-slate600);

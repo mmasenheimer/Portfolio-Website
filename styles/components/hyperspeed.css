@@ -1,0 +1,34 @@
+#lights {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  inset: 0;
+}
+
+#lights canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.featured-road {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  height: 480px;
+  margin-top: -600px;
+}
+
+@media (min-width: 768px) {
+  .featured-road {
+    height: 620px;
+    margin-top: -480px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .featured-road {
+    height: 760px;
+    margin-top: -560px;
+  }
+}

@@ -22,6 +22,10 @@
   color: var(--clr-slate600);
 }
 
+.about__description strong {
+  color: #d6249f;
+}
+
 /* extra small */
 @media (min-width: 475px) {
   .about {
