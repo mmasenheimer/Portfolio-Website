@@ -3,7 +3,7 @@ import LazyImage from "./LazyImage.jsx";
 const About = () => (
   <section id="about" className="about container section">
     <div className="about__content">
-      <h2 className="about__title">What I Bring to the Table</h2>
+      <h2 className="about__title">A Little About Me</h2>
       <p className="about__description">
         I have academic experience in{" "}
         <strong>data structures & algorithms, discrete math,</strong>{" "}

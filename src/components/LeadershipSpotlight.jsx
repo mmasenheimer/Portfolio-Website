@@ -1,3 +1,4 @@
+import Counter from "./Counter.jsx";
 import LazyImage from "./LazyImage.jsx";
 
 const LeadershipSpotlight = ({ entry }) => (
@@ -18,7 +19,20 @@ const LeadershipSpotlight = ({ entry }) => (
     <div className="leadership__stats">
       {entry.stats.map((stat) => (
         <div className="leadership__stat" key={stat.label}>
-          <span className="leadership__stat-value">{stat.value}</span>
+          <span className="leadership__stat-value">
+            <Counter
+              value={stat.value}
+              fontSize={32}
+              padding={0}
+              gap={0}
+              horizontalPadding={0}
+              borderRadius={0}
+              gradientHeight={0}
+              textColor="var(--clr-accent)"
+              fontWeight={700}
+            />
+            {stat.suffix}
+          </span>
           <span className="leadership__stat-label">{stat.label}</span>
         </div>
       ))}

@@ -10,10 +10,10 @@ const leadership = [
     description:
       "Co-lead a team of ambassadors, working on outreach and event scheduling and handling logistics for outreach and workshop events every semester. I lead department tours, volunteer at student career and development activities, and develop interactive OpenCV-based tabling activities for local K-12 schools.",
     stats: [
-      { value: "15", label: "Ambassadors Co-Led" },
-      { value: "20", label: "Events / Semester" },
-      { value: "2,000+", label: "Students Reached" },
-      { value: "10", label: "K-12 Schools" },
+      { value: 15, label: "Ambassadors Co-Led" },
+      { value: 20, label: "Events / Semester" },
+      { value: 2000, suffix: "+", label: "Students Reached" },
+      { value: 10, label: "K-12 Schools" },
     ],
   },
 ];

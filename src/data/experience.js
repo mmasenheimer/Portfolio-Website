@@ -5,7 +5,7 @@ export const ibm = {
   dates: "May 2026 - Present",
   imageAlt: "IBM",
   imagePlaceholder: "https://placehold.co/700x700",
-  imageSrc: "https://placehold.co/700x700?text=IBM",
+  imageSrc: "/images/ibm-logo.jpg",
   summary:
     "Built an agentic BIA ingestion pipeline for IBM's Storage Defender product, combining LLM-based sanitization, multi-modal OCR, and governance-mapped extraction, with a LangGraph ReAct agent handling autonomous gap analysis.",
   pipeline: ["Sanitize", "Extract & OCR", "Map to Governance", "Score Gaps"],
@@ -24,7 +24,7 @@ export const cern = {
   dates: "Apr 2025 - Present",
   imageAlt: "CERN ATLAS Experiment",
   imagePlaceholder: "https://placehold.co/700x700",
-  imageSrc: "https://placehold.co/700x700?text=CERN+%2F+ATLAS",
+  imageSrc: "/images/cern-logo.png",
   summary:
     "Researching quantized feedforward neural networks for the ATLAS forward calorimeter, and developing the kernel tile code and programmable logic that runs them on AMD Versal AI Engines.",
   headlineStats: [
@@ -42,7 +42,7 @@ export const makerStudio = {
   dates: "Jan 2025 - Present",
   imageAlt: "University of Arizona Libraries Maker Studio",
   imagePlaceholder: "https://placehold.co/700x700",
-  imageSrc: "https://placehold.co/700x700?text=Maker+Studio",
+  imageSrc: "/images/ua-logo.png",
   summary:
     "Lead a team of studio assistants running all fabrication operations in the library makerspace, keeping equipment running and students certified across the shop.",
   skills: ["3D Printing", "Laser Cutting", "CNC Milling", "Woodshop"],

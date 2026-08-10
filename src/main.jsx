@@ -9,6 +9,7 @@ import "../styles/components/about.css";
 import "../styles/components/logo-loop.css";
 import "../styles/components/experience.css";
 import "../styles/components/leadership.css";
+import "../styles/components/counter.css";
 import "../styles/components/hobbies.css";
 import "../styles/components/featured.css";
 import "../styles/components/hyperspeed.css";

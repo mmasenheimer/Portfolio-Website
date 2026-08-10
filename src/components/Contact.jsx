@@ -1,3 +1,4 @@
+import LazyImage from "./LazyImage.jsx";
 import PillButton from "./PillButton.jsx";
 
 const Contact = () => (
@@ -5,8 +6,8 @@ const Contact = () => (
     <div className="contact__content">
       <h2 className="contact__title">Let's connect!</h2>
       <p className="contact__description">
-        <strong>Thank you for your time!</strong> Always open to chatting
-        about CS, gardening, hiking, or just life. Drop me a message!
+        Always open to chatting about CS, gardening, hiking, or just life.
+        Drop me a message!
       </p>
 
       <div className="contact__btn-group">
@@ -27,9 +28,10 @@ const Contact = () => (
       </div>
     </div>
     <div className="contact__img-wrapper">
-      <img
+      <LazyImage
         className="contact__img"
-        src="https://placehold.co/600x600"
+        placeholder="https://placehold.co/600x600"
+        src="/images/connect.jpg"
         alt="Michael Masenheimer"
       />
     </div>

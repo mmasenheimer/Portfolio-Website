@@ -10,8 +10,13 @@ const FEATURED_IMAGES = [
 ];
 
 const RESEARCH_TIMELINE = [
-  { date: "Apr 2025", label: "Joined the ATLAS research team" },
-  { date: "Present", label: "Deploying quantized models on AMD AI Engines" },
+  { date: "Apr 2025", label: "Joined UArizona CERN research group" },
+  { date: "Oct 2025", label: "Deployed first model onto hardware" },
+  {
+    date: "Dec 2025",
+    label: "Optimized model via quantization and vectorization",
+  },
+  { date: "Mar 2026", label: "Aie4ml for network permutation testing" },
 ];
 
 const Featured = () => (
@@ -39,20 +44,19 @@ const Featured = () => (
           <a href="https://atlas.cern/" target="_blank">
             ATLAS Experiment,
           </a>{" "}
-          one of the primary particle collision detectors on the LHC. Dr.
-          Rachel Hyneman and I research{" "}
-          <strong>quantized feedforward neural networks</strong> for the
-          ATLAS forward calorimeter, using hardware-based machine learning
-          to determine which proton collisions are worth keeping in real
-          time.
+          one of the primary particle collision detectors on the LHC. Dr. Rachel
+          Hyneman and I research{" "}
+          <strong>quantized feedforward neural networks</strong> for the ATLAS
+          forward calorimeter, using hardware-based machine learning to
+          determine which proton collisions are worth keeping in real time.
         </p>
         <p className="featured__description">
           I design and quantize custom feedforward neural networks in{" "}
           <strong>C++ and PyTorch,</strong> then develop and maintain kernel
           tile code and programmable logic on AMD Versal AI Engines to
-          orchestrate data flow and minimize bit-level overhead.
-          Benchmarking latency, throughput, and quantization tradeoffs
-          across network designs, our current pipeline achieves roughly{" "}
+          orchestrate data flow and minimize bit-level overhead. Benchmarking
+          latency, throughput, and quantization tradeoffs across network
+          designs, our current pipeline achieves roughly{" "}
           <strong>7 million packets per second at 97% accuracy,</strong> and
           we're simulating deployment on Vitis FPGAs to support real-time
           decision-making.
