@@ -1,3 +1,4 @@
+import ExperienceGallery from "./ExperienceGallery.jsx";
 import ExperienceHeader from "./ExperienceHeader.jsx";
 
 const PipelineEntry = ({ entry }) => (
@@ -20,6 +21,7 @@ const PipelineEntry = ({ entry }) => (
         </div>
       ))}
     </div>
+    <ExperienceGallery photos={entry.photos} />
   </article>
 );
 

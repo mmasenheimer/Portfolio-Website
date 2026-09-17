@@ -1,3 +1,4 @@
+import ExperienceGallery from "./ExperienceGallery.jsx";
 import ExperienceHeader from "./ExperienceHeader.jsx";
 import PillButton from "./PillButton.jsx";
 
@@ -16,6 +17,7 @@ const ResearchSpotlightEntry = ({ entry }) => (
     <PillButton className="experience__cta" href={entry.ctaHref}>
       {entry.ctaText}
     </PillButton>
+    <ExperienceGallery photos={entry.photos} />
   </article>
 );
 

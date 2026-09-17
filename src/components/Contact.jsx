@@ -25,6 +25,13 @@ const Contact = () => (
         >
           Linkedin
         </PillButton>
+        <PillButton
+          className="contact__btn"
+          href="https://github.com/mmasenheimer"
+          target="_blank"
+        >
+          GitHub
+        </PillButton>
       </div>
     </div>
     <div className="contact__img-wrapper">

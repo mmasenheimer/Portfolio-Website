@@ -16,6 +16,23 @@ const leadership = [
       { value: 10, label: "K-12 Schools" },
     ],
   },
+  {
+    title: "University of Arizona Libraries Maker Studio",
+    role: "Fabrication Lead",
+    location: "Tucson, AZ",
+    dates: "Jan 2025 - Present",
+    imageAlt: "Maker Studio Fabrication Lead",
+    imagePlaceholder: "https://placehold.co/900x700",
+    imageSrc: "https://placehold.co/900x700?text=Maker+Studio",
+    description:
+      "Lead a team of studio assistants running all fabrication operations in the library makerspace, covering 3D printing, laser cutting, CNC milling, and woodshop. Responsible for keeping equipment maintained, training and scheduling assistants, and making sure every student who walks in gets certified and supported.",
+    stats: [
+      { value: 8, label: "Studio Assistants Led" },
+      { value: 25, label: "Machines Maintained" },
+      { value: 50, suffix: "+", label: "Students / Week" },
+      { value: 4, label: "Fabrication Disciplines" },
+    ],
+  },
 ];
 
 export default leadership;

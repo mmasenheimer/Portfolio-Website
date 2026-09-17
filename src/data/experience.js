@@ -15,6 +15,10 @@ export const ibm = {
     { value: "15+", label: "Metric Fields" },
     { value: "3-Tier", label: "Async Test Suite" },
   ],
+  photos: [
+    { alt: "IBM project screenshot", placeholder: "https://placehold.co/700x500", src: "https://placehold.co/700x500" },
+    { alt: "IBM project screenshot", placeholder: "https://placehold.co/700x500", src: "https://placehold.co/700x500" },
+  ],
 };
 
 export const cern = {
@@ -33,6 +37,10 @@ export const cern = {
   ],
   ctaHref: "#featured",
   ctaText: "Read the full research",
+  photos: [
+    { alt: "CERN research photo", placeholder: "https://placehold.co/700x500", src: "https://placehold.co/700x500" },
+    { alt: "CERN research photo", placeholder: "https://placehold.co/700x500", src: "https://placehold.co/700x500" },
+  ],
 };
 
 export const makerStudio = {
@@ -50,6 +58,10 @@ export const makerStudio = {
     { value: "8", label: "Studio Assistants" },
     { value: "25", label: "Machines Maintained" },
     { value: "50+", label: "Students / Week" },
+  ],
+  photos: [
+    { alt: "Maker Studio photo", placeholder: "https://placehold.co/700x500", src: "https://placehold.co/700x500" },
+    { alt: "Maker Studio photo", placeholder: "https://placehold.co/700x500", src: "https://placehold.co/700x500" },
   ],
 };
 

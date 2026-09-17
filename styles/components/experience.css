@@ -99,6 +99,25 @@
   margin-top: 0.5rem;
 }
 
+.experience__gallery {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.experience__gallery-img-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.experience__gallery-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Pipeline (IBM) */
 
 .pipeline {

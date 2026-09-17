@@ -1,3 +1,4 @@
+import ExperienceGallery from "./ExperienceGallery.jsx";
 import ExperienceHeader from "./ExperienceHeader.jsx";
 
 const SkillGridEntry = ({ entry }) => (
@@ -19,6 +20,7 @@ const SkillGridEntry = ({ entry }) => (
         </div>
       ))}
     </div>
+    <ExperienceGallery photos={entry.photos} />
   </article>
 );
 

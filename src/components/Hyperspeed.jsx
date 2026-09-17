@@ -71,8 +71,8 @@ const Hyperspeed = ({ effectOptions = DEFAULT_EFFECT_OPTIONS }) => {
     };
 
     const turbulentUniforms = {
-      uFreq: { value: new THREE.Vector4(4, 8, 8, 1) },
-      uAmp: { value: new THREE.Vector4(6, 1.5, 2.2, 2.2) },
+      uFreq: { value: new THREE.Vector4(1, 1.6, 8, 1) },
+      uAmp: { value: new THREE.Vector4(3, 0.8, 1.6, 1.6) },
     };
 
     const deepUniforms = {
