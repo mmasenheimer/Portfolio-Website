@@ -5,13 +5,7 @@
 .experience__title {
   font-size: var(--size-2xl);
   color: var(--clr-light);
-}
-
-.experience__description {
-  max-width: 60ch;
-  font-size: var(--size-sm);
-  color: var(--clr-slate600);
-  margin: 1rem auto 2rem;
+  margin-bottom: 2rem;
 }
 
 .experience__entry {
@@ -220,11 +214,6 @@
     font-size: var(--size-3xl);
   }
 
-  .experience__description {
-    font-size: var(--size-base);
-    margin: 1.5rem auto 2rem;
-  }
-
   .experience__summary {
     font-size: var(--size-base);
   }
@@ -270,10 +259,6 @@
     font-size: var(--size-4xl);
   }
 
-  .experience__description {
-    font-size: var(--size-lg);
-  }
-
   .experience__entry {
     padding: 2.5rem;
   }
@@ -300,11 +285,6 @@
 @media (min-width: 1280px) {
   .experience__title {
     font-size: var(--size-5xl);
-  }
-
-  .experience__description {
-    font-size: var(--size-xl);
-    margin: 2rem auto;
   }
 }
 
