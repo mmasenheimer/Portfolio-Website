@@ -5,11 +5,6 @@ const Contact = () => (
   <section id="contact" className="contact container section">
     <div className="contact__content">
       <h2 className="contact__title">Let's connect!</h2>
-      <p className="contact__description">
-        Always open to chatting about CS, gardening, hiking, or just life.
-        Drop me a message!
-      </p>
-
       <div className="contact__btn-group">
         <PillButton
           className="contact__btn"
