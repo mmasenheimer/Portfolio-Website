@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Component, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 
 // LiDAR-style canyon scan: scattered points over a winding canyon. Its floor
@@ -708,11 +708,21 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-// Point budgets (desktop; phones get a fraction - see CanyonScan)
-const TERRAIN_POINTS = 180000;
-const CRAG_POINTS = 120000;
+// Point budget: 400,000 in total (phones start with a fraction - see CanyonScan)
+const TERRAIN_POINTS = 165000;
+const CRAG_POINTS = 110000;
 const WALL_POINTS = 70000;
-const TREE_POINTS = 60000;
+const TREE_POINTS = 55000;
+// Ground points are stored as this many layers, each spread over the whole
+// landscape, so drawing fewer layers thins the ground out evenly
+const TERRAIN_LEVELS = 20;
+
+// ---- automatic slowdown ----------------------------------------------------
+// While the frame rate stays below SLOW_FPS, draw fewer points, one step at a
+// time. If even the last step runs below FREEZE_FPS, hold a still frame.
+const SLOW_FPS = 45;
+const FREEZE_FPS = 20;
+const QUALITY_STEPS = [1, 0.8, 0.65, 0.5, 0.4, 0.3];
 
 // Terrain patch: wide across, and long down the canyon in front of the camera
 const X_MIN = -10;
@@ -726,6 +736,9 @@ const LOOK_AHEAD = 7;       // how far down the canyon the camera aims
 const CRUISE_HEIGHT = 4.9;  // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, spires higher)
 const CANYON_HEIGHT = 1.25; // down between the walls, clear of the boulders
 const DIVE_PERIOD = 70;     // seconds per cruise -> dive into the canyon -> climb out
+// Kept outside the component so re-renders don't hand the canvas new objects
+const CAMERA = { position: [0, CRUISE_HEIGHT, CAMERA_Z], fov: 58, near: 0.05, far: 60 };
+const DPR = [1, 2];
 
 // Mirrors canyonCenter() in the shader
 const canyonCenter = (z) => Math.sin(z * 0.18) + Math.sin(z * 0.07 + 1.3) * 0.6;
@@ -738,12 +751,12 @@ const smoothstep = (a, b, x) => {
 };
 const randoms = (n) => Float32Array.from({ length: n }, () => Math.random());
 
-function ScanPoints({ vertexShader, attributes, uniforms }) {
+function ScanPoints({ pointsRef, vertexShader, attributes, uniforms }) {
   // depthWrite lets nearer rock hide what's behind it, so surfaces read as
   // solid. frustumCulled is off because the shaders move every point away
   // from where three.js thinks it is.
   return (
-    <points frustumCulled={false}>
+    <points ref={pointsRef} frustumCulled={false}>
       <bufferGeometry>
         {Object.entries(attributes).map(([name, [array, size]]) => (
           <bufferAttribute key={name} attach={`attributes-${name}`} args={[array, size]} />
@@ -760,31 +773,42 @@ function ScanPoints({ vertexShader, attributes, uniforms }) {
   );
 }
 
-function CanyonScan() {
-  const { terrain, crags, walls, trees, uniforms } = useMemo(() => {
-    // Phones get fewer points: these shaders are heavy and run every frame
+function CanyonScan({ onTooSlow }) {
+  const terrainRef = useRef();
+  const cragRef = useRef();
+  const wallRef = useRef();
+  const treeRef = useRef();
+  // Frame-rate watcher state (see the end of useFrame)
+  const perf = useRef({ step: 0, frames: 0, time: 0, slow: 0, settle: 3, lastFps: 0, locked: false });
+
+  const { terrain, crags, walls, trees, counts, uniforms } = useMemo(() => {
+    // Phones start with fewer points: these shaders are heavy and run every frame
     const density = window.innerWidth < 768 ? 0.45 : 1;
     const count = (n) => Math.round(n * density);
-    const terrainCount = count(TERRAIN_POINTS);
+    const perLevel = Math.round(count(TERRAIN_POINTS) / TERRAIN_LEVELS);
+    const terrainCount = perLevel * TERRAIN_LEVELS;
     const cragCount = count(CRAG_POINTS);
     const wallCount = count(WALL_POINTS);
     const treeCount = count(TREE_POINTS);
 
     // Randomly scattered ground points (no grid) so it reads as scan data,
     // with extra packed around the canyon where the camera looks closest.
-    // Sorted by x so neighbouring points in the buffer are near each other,
-    // which lets the GPU skip the canyon-floor maths for whole batches of
-    // rim points.
-    const xs = Float32Array.from({ length: terrainCount }, () =>
-      Math.random() < 0.3 ? -4.5 + Math.random() * 9 : X_MIN + Math.random() * (X_MAX - X_MIN)
-    ).sort();
     // Depth: denser close to the camera, where gaps between points show
-    // most, and thinner far off where the fog swallows them anyway
+    // most, and thinner far off where the fog swallows them anyway.
+    const randomX = () =>
+      Math.random() < 0.3 ? -4.5 + Math.random() * 9 : X_MIN + Math.random() * (X_MAX - X_MIN);
     const nearBiasedZ = (power) => Z_MAX - (Z_MAX - Z_MIN) * Math.random() ** power;
+    // Stored as layers that each cover the whole landscape, so the slowdown
+    // can drop whole layers. Within a layer, points are sorted by x so
+    // neighbours in the buffer are near each other, which lets the GPU skip
+    // the canyon-floor maths for whole batches of rim points.
     const terrainPositions = new Float32Array(terrainCount * 3);
-    for (let i = 0; i < terrainCount; i++) {
-      terrainPositions[i * 3] = xs[i];
-      terrainPositions[i * 3 + 2] = nearBiasedZ(1.35);
+    for (let level = 0, i = 0; level < TERRAIN_LEVELS; level++) {
+      const xs = Float32Array.from({ length: perLevel }, randomX).sort();
+      for (let k = 0; k < perLevel; k++, i++) {
+        terrainPositions[i * 3] = xs[k];
+        terrainPositions[i * 3 + 2] = nearBiasedZ(1.35);
+      }
     }
 
     // Wall points only need a world z; the shader finds the wall at that depth
@@ -804,11 +828,28 @@ function CanyonScan() {
         aSeed: [randoms(treeCount * 4), 4],
         aSeed2: [randoms(treeCount * 4), 4],
       },
+      counts: { perLevel, crag: cragCount, wall: wallCount, tree: treeCount },
       uniforms: { uTime: { value: 0 } },
     };
   }, []);
 
-  useFrame(({ clock, camera }) => {
+  // Draw only the first part of each point set. Every set is spread evenly
+  // through its buffer, so a shorter draw just thins everything out.
+  const applyQuality = (q) => {
+    terrainRef.current?.geometry.setDrawRange(0, Math.round(q * TERRAIN_LEVELS) * counts.perLevel);
+    cragRef.current?.geometry.setDrawRange(0, Math.round(q * counts.crag));
+    wallRef.current?.geometry.setDrawRange(0, Math.round(q * counts.wall));
+    treeRef.current?.geometry.setDrawRange(0, Math.round(q * counts.tree));
+  };
+
+  // Coming back to the tab produces one huge frame gap; don't count it as slow
+  useEffect(() => {
+    const onVisibility = () => Object.assign(perf.current, { settle: 1, frames: 0, time: 0, slow: 0 });
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  useFrame(({ clock, camera }, delta) => {
     const t = clock.getElapsedTime();
     uniforms.uTime.value = t;
     const travel = t * TRAVEL;
@@ -835,16 +876,65 @@ function CanyonScan() {
 
     // Bank into the bends, plus a slight lazy roll
     camera.rotateZ(-canyonBend(q - 3) * 2.5 + Math.sin(t * 0.19) * 0.02);
+
+    // ---- automatic slowdown: measure the frame rate over 1-second windows
+    const p = perf.current;
+    if (p.settle > 0) {
+      p.settle -= delta; // let start-up (and each change) settle before judging
+      return;
+    }
+    p.frames += 1;
+    p.time += delta;
+    if (p.time < 1) return;
+    const fps = p.frames / p.time;
+    p.frames = 0;
+    p.time = 0;
+    p.slow = fps < SLOW_FPS ? p.slow + 1 : 0;
+    if (p.slow < 2) return; // only act on two slow seconds in a row
+    p.slow = 0;
+
+    const lastStep = p.step === QUALITY_STEPS.length - 1;
+    // Did the previous cut actually speed things up? If not, something else
+    // is holding the frame rate down (e.g. a browser capped at 30fps), so
+    // stop thinning the scene out for nothing.
+    const helped = p.step === 0 || fps > p.lastFps * 1.08;
+    if (fps < FREEZE_FPS && (lastStep || p.locked || !helped)) {
+      onTooSlow(); // hopeless: hold a still frame
+      return;
+    }
+    if (p.locked || lastStep) return;
+    if (!helped) {
+      p.locked = true;
+      return;
+    }
+    p.step += 1;
+    p.lastFps = fps;
+    p.settle = 1.5;
+    applyQuality(QUALITY_STEPS[p.step]);
   });
 
   return (
     <>
-      <ScanPoints vertexShader={terrainVertexShader} attributes={terrain} uniforms={uniforms} />
-      <ScanPoints vertexShader={wallVertexShader} attributes={walls} uniforms={uniforms} />
-      <ScanPoints vertexShader={cragVertexShader} attributes={crags} uniforms={uniforms} />
-      <ScanPoints vertexShader={treeVertexShader} attributes={trees} uniforms={uniforms} />
+      <ScanPoints pointsRef={terrainRef} vertexShader={terrainVertexShader} attributes={terrain} uniforms={uniforms} />
+      <ScanPoints pointsRef={wallRef} vertexShader={wallVertexShader} attributes={walls} uniforms={uniforms} />
+      <ScanPoints pointsRef={cragRef} vertexShader={cragVertexShader} attributes={crags} uniforms={uniforms} />
+      <ScanPoints pointsRef={treeRef} vertexShader={treeVertexShader} attributes={trees} uniforms={uniforms} />
     </>
   );
+}
+
+// If creating or running the 3D scene throws, drop it and leave the plain
+// gradient behind it rather than taking the rest of the page down with it
+class SceneErrorBoundary extends Component {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 export default function MoonTripBackground() {
@@ -852,6 +942,11 @@ export default function MoonTripBackground() {
   const reduceMotion =
     typeof window !== 'undefined' &&
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  // Too slow even with the fewest points: hold a still frame
+  const [frozen, setFrozen] = useState(false);
+  // The browser shut the 3D context down (GPU trouble, too many tabs...):
+  // remove the canvas and fall back to the plain gradient
+  const [lost, setLost] = useState(false);
 
   return (
     <div
@@ -864,13 +959,20 @@ export default function MoonTripBackground() {
         pointerEvents: 'none',
       }}
     >
-      <Canvas
-        camera={{ position: [0, CRUISE_HEIGHT, CAMERA_Z], fov: 58, near: 0.05, far: 60 }}
-        dpr={[1, 2]}
-        frameloop={reduceMotion ? 'demand' : 'always'}
-      >
-        <CanyonScan />
-      </Canvas>
+      {!lost && (
+        <SceneErrorBoundary>
+          <Canvas
+            camera={CAMERA}
+            dpr={DPR}
+            frameloop={reduceMotion || frozen ? 'demand' : 'always'}
+            onCreated={({ gl }) => {
+              gl.domElement.addEventListener('webglcontextlost', () => setLost(true), { once: true });
+            }}
+          >
+            <CanyonScan onTooSlow={() => setFrozen(true)} />
+          </Canvas>
+        </SceneErrorBoundary>
+      )}
     </div>
   );
 }
