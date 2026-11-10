@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import useDarkMode from "../hooks/useDarkMode.js";
-import ThemeIcon from "./ThemeIcon.jsx";
 import PillButton from "./PillButton.jsx";
 
 const NAV_LINKS = [
@@ -13,7 +11,6 @@ const NAV_LINKS = [
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const toggleTheme = useDarkMode();
 
   useEffect(() => {
     document.body.style.overflowY = isOpen ? "hidden" : "auto";
@@ -43,11 +40,6 @@ const Navigation = () => {
               </Link>
             </li>
             <li className="header__line"></li>
-            <li>
-              <button className="header__sun" onClick={toggleTheme}>
-                <ThemeIcon />
-              </button>
-            </li>
             <li>
               <PillButton
                 className="header__resume"
@@ -109,11 +101,6 @@ const Navigation = () => {
               </Link>
             </li>
             <li className="mobile-nav__link-line"></li>
-            <li>
-              <button className="mobile-nav__sun" onClick={toggleTheme}>
-                <ThemeIcon />
-              </button>
-            </li>
             <li>
               <PillButton
                 className="mobile-nav__btn"

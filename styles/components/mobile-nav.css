@@ -44,11 +44,6 @@
   padding-right: 1.5em;
 }
 
-.mobile-nav__sun {
-  display: block;
-  color: var(--clr-slate600);
-}
-
 .mobile-nav__btn.btn {
   padding: 0.6em 1.6em;
   font-size: 14px;

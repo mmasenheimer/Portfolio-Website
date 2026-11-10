@@ -70,11 +70,6 @@
     padding-top: 1.5em;
   }
 
-  .header__sun {
-    display: block;
-    color: var(--clr-slate600);
-  }
-
   .header__bars {
     display: none;
   }
