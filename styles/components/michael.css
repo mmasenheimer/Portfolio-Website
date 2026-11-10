@@ -33,9 +33,6 @@
   max-width: 60ch;
   font-size: var(--size-sm);
   color: var(--clr-slate600);
-  background-color: rgba(0, 0, 0, 0.85);
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
 }
 
 .michael__description strong {

@@ -1,5 +1,5 @@
-import { Component, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Component, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 
 // LiDAR-style canyon scan: scattered points over a winding canyon. Its floor
 // is strewn with boulders, rubble and cracks; its walls lean, bulge and
@@ -281,7 +281,9 @@ const common = /* glsl */ `
 `;
 
 // Scattered points over the whole landscape
-const terrainVertexShader = common + /* glsl */ `
+const terrainVertexShader =
+  common +
+  /* glsl */ `
   attribute float aRand;
 
   void main() {
@@ -339,7 +341,9 @@ const terrainVertexShader = common + /* glsl */ `
 //   y - angle around the crag
 //   z - height up the wall / distance in from the edge on the top
 //   w - wall or top
-const cragVertexShader = common + /* glsl */ `
+const cragVertexShader =
+  common +
+  /* glsl */ `
   attribute vec4 aSeed;
 
   // Crag points ride along with the terrain inside a looping band of world
@@ -427,7 +431,9 @@ const cragVertexShader = common + /* glsl */ `
 //   aSeed.y - height up the wall
 //   aSeed.z - speckle
 //   aSeed.w - scatter in front of / behind the face
-const wallVertexShader = common + /* glsl */ `
+const wallVertexShader =
+  common +
+  /* glsl */ `
   attribute vec4 aSeed;
 
   // How far the wall face sits back from its foot at height y: positive
@@ -533,7 +539,9 @@ const wallVertexShader = common + /* glsl */ `
 // Crooked trees scattered over the landscape, built from points: a leaning
 // trunk, 3-5 drooping branches, 2-3 twigs per branch, and loose leaf
 // clumps at the twig tips. Like the crags they ride along with the terrain.
-const treeVertexShader = common + /* glsl */ `
+const treeVertexShader =
+  common +
+  /* glsl */ `
   // x: spot in the looping band (picks the tree's row), y: column,
   // z: which part (trunk / branch / twig / leaves), w: distance along it
   attribute vec4 aSeed;
@@ -732,23 +740,29 @@ const Z_MAX = 6;
 
 // ---- camera flight ---------------------------------------------------------
 const CAMERA_Z = 5;
-const LOOK_AHEAD = 7;       // how far down the canyon the camera aims
-const CRUISE_HEIGHT = 4.9;  // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, spires higher)
+const LOOK_AHEAD = 7; // how far down the canyon the camera aims
+const CRUISE_HEIGHT = 4.9; // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, spires higher)
 const CANYON_HEIGHT = 1.25; // down between the walls, clear of the boulders
 // Overall pace of the flight: 1 = full speed, lower = slower everything
 // (forward travel, drifting, banking and the dives into the canyon)
-const FLIGHT_PACE = 0.35;
+const FLIGHT_PACE = 0.45;
 // One cruise -> dive into the canyon -> climb out cycle, in flight time
 // (real seconds = DIVE_PERIOD / FLIGHT_PACE, so about 2.7 minutes)
 const DIVE_PERIOD = 56;
 // Kept outside the component so re-renders don't hand the canvas new objects
-const CAMERA = { position: [0, CRUISE_HEIGHT, CAMERA_Z], fov: 58, near: 0.05, far: 60 };
+const CAMERA = {
+  position: [0, CRUISE_HEIGHT, CAMERA_Z],
+  fov: 58,
+  near: 0.05,
+  far: 60,
+};
 const DPR = [1, 2];
 
 // Mirrors canyonCenter() in the shader
 const canyonCenter = (z) => Math.sin(z * 0.18) + Math.sin(z * 0.07 + 1.3) * 0.6;
 // Its second derivative: how sharply the canyon is bending (for banking)
-const canyonBend = (z) => -0.0324 * Math.sin(z * 0.18) - 0.00294 * Math.sin(z * 0.07 + 1.3);
+const canyonBend = (z) =>
+  -0.0324 * Math.sin(z * 0.18) - 0.00294 * Math.sin(z * 0.07 + 1.3);
 const lerp = (a, b, t) => a + (b - a) * t;
 const smoothstep = (a, b, x) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -764,7 +778,11 @@ function ScanPoints({ pointsRef, vertexShader, attributes, uniforms }) {
     <points ref={pointsRef} frustumCulled={false}>
       <bufferGeometry>
         {Object.entries(attributes).map(([name, [array, size]]) => (
-          <bufferAttribute key={name} attach={`attributes-${name}`} args={[array, size]} />
+          <bufferAttribute
+            key={name}
+            attach={`attributes-${name}`}
+            args={[array, size]}
+          />
         ))}
       </bufferGeometry>
       <shaderMaterial
@@ -784,7 +802,15 @@ function CanyonScan({ onTooSlow }) {
   const wallRef = useRef();
   const treeRef = useRef();
   // Frame-rate watcher state (see the end of useFrame)
-  const perf = useRef({ step: 0, frames: 0, time: 0, slow: 0, settle: 3, lastFps: 0, locked: false });
+  const perf = useRef({
+    step: 0,
+    frames: 0,
+    time: 0,
+    slow: 0,
+    settle: 3,
+    lastFps: 0,
+    locked: false,
+  });
 
   const { terrain, crags, walls, trees, counts, uniforms } = useMemo(() => {
     // Phones start with fewer points: these shaders are heavy and run every frame
@@ -801,8 +827,11 @@ function CanyonScan({ onTooSlow }) {
     // Depth: denser close to the camera, where gaps between points show
     // most, and thinner far off where the fog swallows them anyway.
     const randomX = () =>
-      Math.random() < 0.3 ? -4.5 + Math.random() * 9 : X_MIN + Math.random() * (X_MAX - X_MIN);
-    const nearBiasedZ = (power) => Z_MAX - (Z_MAX - Z_MIN) * Math.random() ** power;
+      Math.random() < 0.3
+        ? -4.5 + Math.random() * 9
+        : X_MIN + Math.random() * (X_MAX - X_MIN);
+    const nearBiasedZ = (power) =>
+      Z_MAX - (Z_MAX - Z_MIN) * Math.random() ** power;
     // Stored as layers that each cover the whole landscape, so the slowdown
     // can drop whole layers. Within a layer, points are sorted by x so
     // neighbours in the buffer are near each other, which lets the GPU skip
@@ -825,9 +854,18 @@ function CanyonScan({ onTooSlow }) {
     // Crag and tree points are placed entirely in the shader from their
     // seeds; the empty position buffers only tell three.js how many to draw.
     return {
-      terrain: { position: [terrainPositions, 3], aRand: [randoms(terrainCount), 1] },
-      crags: { position: [new Float32Array(cragCount * 3), 3], aSeed: [randoms(cragCount * 4), 4] },
-      walls: { position: [wallPositions, 3], aSeed: [randoms(wallCount * 4), 4] },
+      terrain: {
+        position: [terrainPositions, 3],
+        aRand: [randoms(terrainCount), 1],
+      },
+      crags: {
+        position: [new Float32Array(cragCount * 3), 3],
+        aSeed: [randoms(cragCount * 4), 4],
+      },
+      walls: {
+        position: [wallPositions, 3],
+        aSeed: [randoms(wallCount * 4), 4],
+      },
       trees: {
         position: [new Float32Array(treeCount * 3), 3],
         aSeed: [randoms(treeCount * 4), 4],
@@ -841,7 +879,10 @@ function CanyonScan({ onTooSlow }) {
   // Draw only the first part of each point set. Every set is spread evenly
   // through its buffer, so a shorter draw just thins everything out.
   const applyQuality = (q) => {
-    terrainRef.current?.geometry.setDrawRange(0, Math.round(q * TERRAIN_LEVELS) * counts.perLevel);
+    terrainRef.current?.geometry.setDrawRange(
+      0,
+      Math.round(q * TERRAIN_LEVELS) * counts.perLevel,
+    );
     cragRef.current?.geometry.setDrawRange(0, Math.round(q * counts.crag));
     wallRef.current?.geometry.setDrawRange(0, Math.round(q * counts.wall));
     treeRef.current?.geometry.setDrawRange(0, Math.round(q * counts.tree));
@@ -849,9 +890,10 @@ function CanyonScan({ onTooSlow }) {
 
   // Coming back to the tab produces one huge frame gap; don't count it as slow
   useEffect(() => {
-    const onVisibility = () => Object.assign(perf.current, { settle: 1, frames: 0, time: 0, slow: 0 });
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
+    const onVisibility = () =>
+      Object.assign(perf.current, { settle: 1, frames: 0, time: 0, slow: 0 });
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   useFrame(({ clock, camera }, delta) => {
@@ -867,8 +909,11 @@ function CanyonScan({ onTooSlow }) {
     // the walls), easing forward and back, and bobbing gently
     const z = CAMERA_Z + Math.sin(t * 0.11) * 0.6;
     const q = z - travel; // where along the canyon the camera currently is
-    const drift = (Math.sin(t * 0.23) * 0.25 + Math.sin(t * 0.37 + 1.7) * 0.1) * (1 - dive * 0.4);
-    const y = lerp(CRUISE_HEIGHT, CANYON_HEIGHT, dive) + Math.sin(t * 0.31) * 0.15;
+    const drift =
+      (Math.sin(t * 0.23) * 0.25 + Math.sin(t * 0.37 + 1.7) * 0.1) *
+      (1 - dive * 0.4);
+    const y =
+      lerp(CRUISE_HEIGHT, CANYON_HEIGHT, dive) + Math.sin(t * 0.31) * 0.15;
     camera.position.set(canyonCenter(q) + drift, y, z);
 
     // Aim down the canyon ahead: tilted down over the rim, nearly level inside
@@ -876,7 +921,7 @@ function CanyonScan({ onTooSlow }) {
     camera.lookAt(
       canyonCenter(tz - travel) + Math.sin(t * 0.17) * 0.4,
       lerp(2.2, 0.9, dive) + Math.sin(t * 0.13) * 0.2,
-      tz
+      tz,
     );
 
     // Bank into the bends, plus a slight lazy roll
@@ -920,10 +965,30 @@ function CanyonScan({ onTooSlow }) {
 
   return (
     <>
-      <ScanPoints pointsRef={terrainRef} vertexShader={terrainVertexShader} attributes={terrain} uniforms={uniforms} />
-      <ScanPoints pointsRef={wallRef} vertexShader={wallVertexShader} attributes={walls} uniforms={uniforms} />
-      <ScanPoints pointsRef={cragRef} vertexShader={cragVertexShader} attributes={crags} uniforms={uniforms} />
-      <ScanPoints pointsRef={treeRef} vertexShader={treeVertexShader} attributes={trees} uniforms={uniforms} />
+      <ScanPoints
+        pointsRef={terrainRef}
+        vertexShader={terrainVertexShader}
+        attributes={terrain}
+        uniforms={uniforms}
+      />
+      <ScanPoints
+        pointsRef={wallRef}
+        vertexShader={wallVertexShader}
+        attributes={walls}
+        uniforms={uniforms}
+      />
+      <ScanPoints
+        pointsRef={cragRef}
+        vertexShader={cragVertexShader}
+        attributes={crags}
+        uniforms={uniforms}
+      />
+      <ScanPoints
+        pointsRef={treeRef}
+        vertexShader={treeVertexShader}
+        attributes={trees}
+        uniforms={uniforms}
+      />
     </>
   );
 }
@@ -945,8 +1010,8 @@ class SceneErrorBoundary extends Component {
 export default function MoonTripBackground() {
   // Reduced motion: draw a single still frame instead of animating
   const reduceMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   // Too slow even with the fewest points: hold a still frame
   const [frozen, setFrozen] = useState(false);
   // The browser shut the 3D context down (GPU trouble, too many tabs...):
@@ -957,11 +1022,12 @@ export default function MoonTripBackground() {
     <div
       aria-hidden="true"
       style={{
-        position: 'fixed',
+        position: "fixed",
         inset: 0,
         zIndex: -1,
-        background: 'radial-gradient(circle at 50% 40%, #04090d 0%, #010203 100%)',
-        pointerEvents: 'none',
+        background:
+          "radial-gradient(circle at 50% 40%, #04090d 0%, #010203 100%)",
+        pointerEvents: "none",
       }}
     >
       {!lost && (
@@ -969,9 +1035,13 @@ export default function MoonTripBackground() {
           <Canvas
             camera={CAMERA}
             dpr={DPR}
-            frameloop={reduceMotion || frozen ? 'demand' : 'always'}
+            frameloop={reduceMotion || frozen ? "demand" : "always"}
             onCreated={({ gl }) => {
-              gl.domElement.addEventListener('webglcontextlost', () => setLost(true), { once: true });
+              gl.domElement.addEventListener(
+                "webglcontextlost",
+                () => setLost(true),
+                { once: true },
+              );
             }}
           >
             <CanyonScan onTooSlow={() => setFrozen(true)} />

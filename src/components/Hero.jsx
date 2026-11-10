@@ -12,7 +12,7 @@ const Hero = () => (
       COMP SCI '27 @ U OF ARIZONA
       <br />
     </h1>
-    <p className="michael__description">
+    <p className="michael__description text-pane">
       I'm a Computer Science and Information Science student at the
       University of Arizona, interested in{" "}
       <strong>backend development and machine learning.</strong> I bring

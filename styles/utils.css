@@ -93,6 +93,14 @@
   padding-right: 0.5rem;
 }
 
+/* Dark pane behind blocks of text (intro, about) so they stay readable
+   over the animated background */
+.text-pane {
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+}
+
 .section-divider {
   border: none;
   border-top: 1px solid var(--clr-slate800);

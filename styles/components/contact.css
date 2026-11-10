@@ -84,11 +84,6 @@
     gap: 3rem;
   }
 
-  .contact__content {
-    align-items: flex-start;
-    text-align: left;
-  }
-
   .contact__img {
     width: 16rem;
   }

@@ -2,7 +2,7 @@ import LazyImage from "./LazyImage.jsx";
 
 const About = () => (
   <section id="about" className="about container section">
-    <div className="about__content">
+    <div className="about__content text-pane">
       <h2 className="about__title">A Little About Me</h2>
       <p className="about__description">
         I have academic experience in{" "}
