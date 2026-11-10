@@ -36,8 +36,17 @@
 }
 
 .header__resume.btn {
-  padding: 0.7em 1.9em;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55em 1.6em;
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* the shared .btn label is nudged up 1px - undo it so the text sits
+   centred in the nav */
+.header__resume .label {
+  top: 0;
 }
 
 /* extra small */
@@ -56,6 +65,13 @@
     list-style: none;
     padding: 0;
     gap: 2.5em;
+  }
+
+  /* centre every item (links, divider, resume button) on one line
+     instead of sitting on the text baseline */
+  .header__menu > li {
+    display: flex;
+    align-items: center;
   }
 
   .header__link {
