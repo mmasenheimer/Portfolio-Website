@@ -39,6 +39,16 @@ const Navigation = () => {
                 Contact
               </Link>
             </li>
+            <li>
+              <NavLink
+                to="/moon-trip"
+                className={({ isActive }) =>
+                  `header__link${isActive ? " header__link--active" : ""}`
+                }
+              >
+                Moon Trip
+              </NavLink>
+            </li>
             <li className="header__line"></li>
             <li>
               <PillButton
@@ -99,6 +109,17 @@ const Navigation = () => {
               >
                 Contact
               </Link>
+            </li>
+            <li>
+              <NavLink
+                to="/moon-trip"
+                className={({ isActive }) =>
+                  `mobile-nav__link${isActive ? " mobile-nav__link--active" : ""}`
+                }
+                onClick={() => setIsOpen(false)}
+              >
+                Moon Trip
+              </NavLink>
             </li>
             <li className="mobile-nav__link-line"></li>
             <li>

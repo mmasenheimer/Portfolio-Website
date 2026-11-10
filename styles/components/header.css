@@ -64,7 +64,7 @@
     align-items: center;
     list-style: none;
     padding: 0;
-    gap: 2.5em;
+    gap: 1.75em;
   }
 
   /* centre every item (links, divider, resume button) on one line

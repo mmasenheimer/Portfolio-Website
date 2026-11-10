@@ -8,6 +8,7 @@ import Leadership from "./components/Leadership.jsx";
 import Footer from "./components/Footer.jsx";
 import UnderConstruction from "./components/UnderConstruction.jsx";
 import Waves from "./components/Waves.jsx";
+import MoonTrip from "./pages/MoonTrip.jsx";
 
 const App = () => (
   <BrowserRouter>
@@ -50,6 +51,7 @@ const App = () => (
           path="/leadership"
           element={<UnderConstruction><Leadership /></UnderConstruction>}
         />
+        <Route path="/moon-trip" element={<MoonTrip />} />
       </Routes>
     </main>
     <Footer />
