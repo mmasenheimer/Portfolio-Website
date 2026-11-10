@@ -7,20 +7,53 @@ const vertexShader = /* glsl */ `
   varying float vElevation;
   varying float vDepth;
 
-  // Classic 3D simplex-style organic wave displacement
-  float terrainNoise(vec2 p) {
-    float n = sin(p.x * 1.2 + uTime * 0.18) * cos(p.y * 1.2 - uTime * 0.14);
-    n += 0.5 * sin(p.x * 2.7 - uTime * 0.22 + p.y * 1.9);
-    n += 0.25 * cos(p.x * 5.3 + p.y * 4.7 + uTime * 0.3);
-    return n;
+  // 2D gradient noise, roughly in [-0.7, 0.7]
+  vec2 hash2(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453);
+  }
+
+  float gnoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(dot(hash2(i), f), dot(hash2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
+      mix(dot(hash2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)), dot(hash2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x),
+      u.y
+    );
+  }
+
+  // Ridged multifractal: 1 - |noise| folds each octave into a sharp crest,
+  // and weighting each octave by the previous one piles detail onto the
+  // peaks while leaving the valleys smoother - like real mountain ranges.
+  float ridgedTerrain(vec2 p) {
+    float sum = 0.0;
+    float amp = 0.5;
+    float freq = 1.0;
+    float prev = 1.0;
+    for (int i = 0; i < 5; i++) {
+      float n = 1.0 - clamp(abs(gnoise(p * freq)) * 1.6, 0.0, 1.0);
+      n = n * n;
+      sum += n * amp * prev;
+      prev = n;
+      freq *= 2.03;
+      amp *= 0.5;
+    }
+    return sum; // ~[0, 1]
   }
 
   void main() {
     vec3 pos = position;
 
-    // Displace Y to mimic photogrammetry ridges, valleys, and organic structures
-    float elevation = terrainNoise(pos.xz * 0.45);
-    pos.y += elevation * 1.65;
+    // Slowly drift the terrain under the camera, like flying over a range
+    vec2 drift = vec2(uTime * 0.04, uTime * 0.025);
+    float ridge = ridgedTerrain(pos.xz * 0.35 + drift);
+
+    // Sharpen further so peaks spike up out of low valleys, then remap to
+    // the [-1.4, 1.4] range the fragment colours expect.
+    float elevation = pow(ridge, 1.6) * 2.8 - 1.2;
+    pos.y += elevation * 1.5;
 
     // Subtle horizontal drift like unanchored scan data
     pos.x += sin(pos.z * 0.6 + uTime * 0.2) * 0.18;
