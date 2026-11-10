@@ -1,11 +1,11 @@
-/* Sticky glass navigation pane */
+/* Glass navigation pane (scrolls away with the page) */
 .header {
   width: 100%;
   display: flex;
   justify-content: center;
   padding-top: 1rem;
-  position: sticky;
-  top: 0;
+  /* relative + z-index keeps the menu button above the open mobile nav */
+  position: relative;
   z-index: 9999;
 }
 
@@ -55,7 +55,7 @@
     align-items: center;
     list-style: none;
     padding: 0;
-    gap: 2em;
+    gap: 2.5em;
   }
 
   .header__link {
@@ -90,11 +90,18 @@
   .header__link {
     font-size: var(--size-base);
   }
+
+  .header__menu {
+    gap: 3.5em;
+  }
 }
 
 /* extra large */
-/* @media (min-width: 1280px) {
-} */
+@media (min-width: 1280px) {
+  .header__menu {
+    gap: 5em;
+  }
+}
 
 /* double xl */
 /* @media (min-width: 1536px) {

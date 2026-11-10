@@ -11,10 +11,10 @@
   /* accent rgb is rgb(45, 212, 191) */
 
   /* glass panes (nav + sections) */
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-bg-strong: rgba(10, 14, 20, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-blur: 16px;
+  --glass-bg: rgba(255, 255, 255, 0.01);
+  --glass-bg-strong: rgba(10, 14, 20, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 4px;
   --pane-radius: 1.25rem;
   --pane-gap: 1.5rem;
 
