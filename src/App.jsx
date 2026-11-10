@@ -13,18 +13,18 @@ const App = () => (
   <BrowserRouter>
     <div className="site-background" aria-hidden="true">
       <Waves
-        lineColor="#000000"
+        lineColor="#20604f"
         spacing={16}
-        amplitude={26}
+        amplitude={25}
         twist={1.35}
-        speed={0.4}
+        speed={0.35}
         mouseRadius={170}
         mouseStrength={1}
-        backgroundColor="#18240b"
-        lineWidth={2.75}
-        rotation={61}
-        scale={0.55}
-        variation={5}
+        backgroundColor="#000000"
+        lineWidth={1.25}
+        rotation={70}
+        scale={0.7}
+        variation={6}
         mouseInteraction={false}
         returnDuration={1.3}
         clickRipple={false}
