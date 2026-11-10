@@ -1,37 +1,41 @@
 import { useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 
-// LiDAR-style canyon scan: scattered points over a winding canyon with
-// fractured rock slabs on either side and tall faceted crags jutting up from
-// the rim. Points are coloured by how much their surface faces the light:
-// lit faces glow green, the rest fall off to teal and navy. The camera
-// follows the canyon, cruising above the rim and now and then dropping down
-// to fly between the walls.
+// LiDAR-style canyon scan: scattered points over a winding canyon. Its floor
+// is strewn with boulders, rubble and cracks; its walls lean, bulge and
+// overhang, with ledges, fissures and the odd cave; the rim is broken into
+// cracked rock slabs; ragged crags and twisted spires jut up along the edge;
+// and crooked trees grow all around. Points are coloured by how much their
+// surface faces the light: lit faces glow green, the rest fall off to teal
+// and navy. The camera follows the canyon, cruising above the rim and now
+// and then dropping down to fly between the walls.
 
 // How fast the landscape flows toward the camera (units per second). Shared
 // with the shaders so the camera can keep tracking the canyon as it moves.
 const TRAVEL = 0.25;
 
-// Shared by all three vertex shaders (terrain, crags, canyon walls)
+// Shared by all the vertex shaders
 const common = /* glsl */ `
   uniform float uTime;
 
   const float TAU = 6.2831853;
   const float TRAVEL = ${TRAVEL.toFixed(4)};
   const float CRAG_PERIOD = 9.0;  // spacing between crags along the canyon
-  const float CRAG_SIDES = 7.0;   // facets around each crag's outline
 
   varying float vLight;
   varying float vHeight;
   varying float vStrata;
   varying float vDepth;
   varying float vRand;
+  varying float vShade;
   varying float vVisible;
 
   // ---- noise ---------------------------------------------------------
+  // "Hash without Sine" by Dave Hoskins (MIT) - cheap, and stable on all GPUs
   vec2 hash01(vec2 p) {
-    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
-    return fract(sin(p) * 43758.5453);
+    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.xx + p3.yz) * p3.zy);
   }
 
   vec2 hash2(vec2 p) {
@@ -56,7 +60,7 @@ const common = /* glsl */ `
     float amp = 0.5;
     float freq = 1.0;
     float prev = 1.0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
       float n = 1.0 - clamp(abs(gnoise(p * freq)) * 1.6, 0.0, 1.0);
       n *= n;
       sum += n * amp * prev;
@@ -67,11 +71,14 @@ const common = /* glsl */ `
     return sum; // ~[0, 1]
   }
 
-  // Voronoi: which irregular cell p falls in (id) and that cell's centre.
-  void voronoi(vec2 p, out vec2 cellId, out vec2 cellPos) {
+  // Voronoi: the nearest cell (id + centre), plus the distances to the
+  // nearest and second-nearest centres. Where those two are nearly equal
+  // we're on a boundary between cells - used for cracks.
+  vec2 voronoi(vec2 p, out vec2 cellId, out vec2 cellPos) {
     vec2 n = floor(p);
     vec2 f = fract(p);
-    float best = 8.0;
+    float d1 = 8.0;
+    float d2 = 8.0;
     cellId = n;
     cellPos = n;
     for (int j = -1; j <= 1; j++) {
@@ -80,13 +87,17 @@ const common = /* glsl */ `
         vec2 o = hash01(n + g);
         vec2 r = g + o - f;
         float d = dot(r, r);
-        if (d < best) {
-          best = d;
+        if (d < d1) {
+          d2 = d1;
+          d1 = d;
           cellId = n + g;
           cellPos = n + g + o;
+        } else if (d < d2) {
+          d2 = d;
         }
       }
     }
+    return sqrt(vec2(d1, d2));
   }
 
   // ---- canyon --------------------------------------------------------
@@ -107,26 +118,55 @@ const common = /* glsl */ `
     return abs(q.x - canyonCenter(q.y)) + gnoise(q * 0.9) * 0.6 + gnoise(q * 2.3) * 0.25;
   }
 
-  // Valley floor: low, with rubbly ridges
-  float floorHeight(vec2 q) {
-    return ridged(q * 0.6) * 0.35 + gnoise(q * 3.0) * 0.05;
+  // Canyon floor: broad swells, rubble, talus piled at the foot of the
+  // walls, scattered boulders, little bumps and winding cracks
+  float floorHeight(vec2 q, float d, float halfWidth) {
+    float h = 0.1 + gnoise(q * 0.22) * 0.25;            // broad swells and dips
+    h += ridged(q * 0.6) * 0.3;                          // rubbly ridges
+    h += smoothstep(halfWidth - 0.9, halfWidth, d)       // talus against the walls
+      * (0.25 + gnoise(q * 1.7) * 0.2);
+
+    // Boulders: lumpy mounds in about half the cells of a warped grid, kept
+    // small down the middle where the camera flies
+    vec2 cellId;
+    vec2 cellPos;
+    vec2 bp = q * 1.1 + vec2(gnoise(q * 2.0), gnoise(q * 2.0 + 3.1)) * 0.25;
+    vec2 f = voronoi(bp, cellId, cellPos);
+    vec2 bh = hash01(cellId + 11.7);
+    float radius = 0.2 + bh.x * 0.3;
+    float k = f.x / radius;
+    float lump = sqrt(max(0.0, 1.0 - k * k));
+    h += step(bh.y, 0.5) * lump * radius * (0.5 + bh.y)
+      * mix(0.25, 1.0, smoothstep(0.35, 1.0, d));
+
+    h += max(0.0, gnoise(q * 5.5)) * 0.12;               // little bumps
+    h += gnoise(q * 11.0) * 0.03;                        // grit
+
+    // Cracks: narrow channels along a warped noise contour
+    float crack = gnoise(q * 0.7 + vec2(gnoise(q * 1.9), gnoise(q * 1.9 + 7.0)) * 0.6);
+    h -= (1.0 - smoothstep(0.0, 0.035, abs(crack))) * 0.3;
+    return h;
   }
 
-  // Rim: each Voronoi cell is its own tilted rock slab at its own height,
-  // so neighbouring slabs meet in sharp fractured drops.
+  // Rim: tilted rock slabs from a warped Voronoi pattern (so the fractures
+  // wander instead of running straight), big and little bumps, and narrow
+  // crevices along the fractures
   float rimHeight(vec2 q, float d, float halfWidth) {
     vec2 cellId;
     vec2 cellPos;
-    vec2 s = q * 0.55;
-    voronoi(s, cellId, cellPos);
+    vec2 s = q * 0.55 + vec2(gnoise(q * 1.1), gnoise(q * 1.1 + 5.2)) * 0.35;
+    vec2 f = voronoi(s, cellId, cellPos);
     vec2 tilt = hash01(cellId) * 2.0 - 1.0;
-    float slab = 2.3
-      + hash01(cellId + 7.3).x * 0.9       // per-slab height
-      + dot(s - cellPos, tilt) * 0.7;      // per-slab tilt
-    slab += (d - halfWidth) * 0.12;        // land keeps rising away from the canyon
-    slab += ridged(q * 0.8) * 0.4;         // weathered tops
-    slab += gnoise(q * 4.0) * 0.06 + gnoise(q * 9.0) * 0.025; // fine roughness
-    return slab;
+    float h = 2.3
+      + hash01(cellId + 7.3).x * 0.9                     // per-slab height
+      + dot(s - cellPos, tilt) * 0.7;                    // per-slab tilt
+    h += (d - halfWidth) * 0.12;                         // keeps rising away from the canyon
+    h += ridged(q * 0.8) * 0.4;                          // weathered tops
+    h += gnoise(q * 0.35) * 0.35;                        // big bumps
+    h += max(0.0, gnoise(q * 3.3)) * 0.12;               // little bumps
+    h += gnoise(q * 4.0) * 0.06 + gnoise(q * 9.0) * 0.025;
+    h -= (1.0 - smoothstep(0.0, 0.06, f.y - f.x)) * 0.5; // crevices between slabs
+    return h;
   }
 
   // Ground height without the crags
@@ -135,30 +175,45 @@ const common = /* glsl */ `
     float halfWidth = canyonHalfWidth(q.y);
     // 0 on the canyon floor, 1 up on the rim - a very steep step = cliff wall
     float wall = smoothstep(halfWidth, halfWidth + 0.3, d);
-    return mix(floorHeight(q), rimHeight(q, d, halfWidth), wall);
+    float h = 0.0;
+    if (wall < 1.0) h += (1.0 - wall) * floorHeight(q, d, halfWidth);
+    if (wall > 0.0) h += wall * rimHeight(q, d, halfWidth);
+    return h;
   }
 
   // ---- crags ---------------------------------------------------------
-  // Tall faceted rock towers spaced along the canyon, alternating sides,
-  // standing at the rim so their inner face can drop toward the floor.
+  // Rock towers spaced along the canyon, alternating sides, standing at
+  // the rim. Most are broad ragged blocks; about a third are thin, tall,
+  // twisted spires.
   struct Crag {
     vec2 center;  // terrain space
     float radius;
     float top;
     float side;   // -1 = left of the canyon, +1 = right
     float seed;
+    float spire;  // 1 = twisted spire, 0 = block
+    float taper;  // how much it narrows toward the top
+    float twist;  // how far a spire's ribs turn from base to top
+    vec2 lean;    // how far the top is shifted from the base (away from the canyon)
   };
 
   Crag cragAt(float k) {
     vec2 h = hash01(vec2(k, 17.0));
+    vec2 h2 = hash01(vec2(k, 29.0));
     Crag c;
     c.seed = k;
     c.side = mod(k, 2.0) < 0.5 ? -1.0 : 1.0;
-    c.radius = 1.5 + h.y * 0.6;
+    c.spire = step(h2.x, 0.35);
+    c.radius = mix(1.5 + h.y * 0.6, 0.5 + h.y * 0.3, c.spire);
+    c.top = mix(3.6 + h.x * 0.6, 5.0 + h.x * 1.3, c.spire);
+    c.taper = mix(0.05 + h2.y * 0.25, 0.35 + h2.y * 0.2, c.spire);
+    c.twist = c.spire * (1.5 + h2.y * 2.0) * (h.x < 0.5 ? -1.0 : 1.0);
+    // lean outward (never over the canyon, so the camera's path stays clear)
+    vec2 h3 = hash01(vec2(k, 41.0));
+    c.lean = vec2(c.side * h3.x * mix(0.5, 0.9, c.spire), (h3.y - 0.5) * mix(0.6, 1.2, c.spire));
     float z = k * CRAG_PERIOD + (h.x - 0.5) * 2.0;
     // set back enough that the camera's path down the canyon stays clear
     c.center = vec2(canyonCenter(z) + c.side * (canyonHalfWidth(z) + c.radius), z);
-    c.top = 3.6 + h.x * 0.6;
     return c;
   }
 
@@ -166,26 +221,27 @@ const common = /* glsl */ `
     return cragAt(floor(z / CRAG_PERIOD + 0.5));
   }
 
-  // Faceted, chipped outline: distance from the crag centre at angle theta
-  float cragOutline(Crag c, float theta) {
-    float a = theta / TAU * CRAG_SIDES;
-    float i = floor(a);
-    float r0 = hash01(vec2(c.seed * 13.1 + mod(i, CRAG_SIDES), 5.3)).x;
-    float r1 = hash01(vec2(c.seed * 13.1 + mod(i + 1.0, CRAG_SIDES), 5.3)).x;
-    float r = 0.7 + 0.6 * mix(r0, r1, a - i);                              // straight-ish facets
-    r += gnoise(vec2(cos(theta), sin(theta)) * 3.0 + c.seed * 7.7) * 0.08; // chips
-    return c.radius * r;
+  // A crag's cross-section: distance from its centre at angle theta and
+  // height fraction y01 (0 = base, 1 = top). Layered noise keeps the outline
+  // ragged, and it shifts with height so the walls bulge and overhang.
+  float cragOutline(Crag c, float theta, float y01) {
+    float a = theta + c.twist * y01;
+    vec2 dir = vec2(cos(a), sin(a));
+    float r = 1.0
+      + gnoise(dir * 1.3 + c.seed * 7.7) * 0.45
+      + gnoise(dir * 3.1 + vec2(c.seed * 3.3, y01 * 2.6)) * 0.3
+      + gnoise(dir * 7.0 + vec2(c.seed * 1.7, y01 * 7.0)) * 0.12;
+    r += c.spire * sin(a * 4.0 + c.seed) * 0.18;         // fluted ribs on spires
+    r *= 1.0 - c.taper * y01;
+    return c.radius * max(r, 0.3);
   }
 
-  bool insideCrag(Crag c, vec2 q) {
-    vec2 v = q - c.center;
-    return length(v) < cragOutline(c, atan(v.y, v.x));
-  }
-
-  // Crag top: a tilted slab, highest along the canyon edge, with a broken crest
+  // Crag top: blocks are tilted slabs, highest along the canyon edge;
+  // spires come to a point. Both get a broken, jagged crest.
   float cragTop(Crag c, vec2 q) {
-    vec2 v = q - c.center;
-    float h = c.top - v.x * c.side * 0.35 + v.y * 0.1;
+    vec2 v = q - c.center - c.lean;
+    float h = c.top - v.x * c.side * 0.35 * (1.0 - c.spire) + v.y * 0.1;
+    h += c.spire * (1.0 - length(v) / c.radius) * 0.6;
     h += ridged(q * 1.3 + c.seed) * 0.5;
     h += gnoise(q * 6.0) * 0.05;
     return h;
@@ -195,57 +251,84 @@ const common = /* glsl */ `
   float heightAt(vec2 xz) {
     vec2 q = vec2(xz.x, xz.y - uTime * TRAVEL);
     float h = baseHeight(q);
-
     Crag c = nearestCrag(q.y);
-    vec2 v = q - c.center;
+    vec2 v = q - c.center - c.lean; // the top sits over the leaned-over centre
     float r = length(v);
-    if (r < c.radius * 1.45) {
-      float edge = cragOutline(c, atan(v.y, v.x));
+    if (r < c.radius * 2.0) {
+      float edge = cragOutline(c, atan(v.y, v.x), 1.0);
       float inside = 1.0 - smoothstep(edge - 0.04, edge + 0.04, r); // near-vertical wall
       h = mix(h, max(h, cragTop(c, q)), inside);
     }
     return h;
   }
 
-  // Light from the front-left, mostly from behind the camera, so faces
-  // turned toward the viewer glow green
+  // Key light from the front-left at a raking angle, so faces turned toward
+  // the viewer glow green and bumps, ledges and boulders show their shape,
+  // plus a weak fill from the right (like light bouncing off the far wall)
+  // so rock in shadow still reads instead of going black
   float lightAmount(vec3 n) {
-    return clamp(dot(n, normalize(vec3(-0.35, 0.4, 0.85))), 0.0, 1.0);
+    float key = max(dot(n, normalize(vec3(-0.6, 0.45, 0.65))), 0.0);
+    float fill = max(dot(n, normalize(vec3(0.7, 0.35, 0.3))), 0.0);
+    return clamp(key + fill * 0.25, 0.0, 1.0);
   }
 
   void emit(vec3 pos) {
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mvPosition;
     vDepth = -mvPosition.z;
-    gl_PointSize = clamp(16.0 / -mvPosition.z, 1.0, 4.0);
+    gl_PointSize = clamp(18.0 / -mvPosition.z, 1.0, 10.0); // nearer = bigger
   }
 `;
 
-// Evenly scattered points over the whole landscape
+// Scattered points over the whole landscape
 const terrainVertexShader = common + /* glsl */ `
   attribute float aRand;
 
   void main() {
     vec2 xz = position.xz;
-    float h = heightAt(xz);
+    vec2 q = vec2(xz.x, xz.y - uTime * TRAVEL);
 
-    // Surface normal from finite differences
+    // Height here and just around it, for the surface normal and step depth
     float e = 0.06;
-    float dx = (heightAt(xz + vec2(e, 0.0)) - heightAt(xz - vec2(e, 0.0))) / (2.0 * e);
-    float dz = (heightAt(xz + vec2(0.0, e)) - heightAt(xz - vec2(0.0, e))) / (2.0 * e);
-    vec3 n = normalize(vec3(-dx, 1.0, -dz));
-    float slope = length(vec2(dx, dz));
+    float h = heightAt(xz);
+    float hx0 = heightAt(xz - vec2(e, 0.0));
+    float hx1 = heightAt(xz + vec2(e, 0.0));
+    float hz0 = heightAt(xz - vec2(0.0, e));
+    float hz1 = heightAt(xz + vec2(0.0, e));
+    vec3 n = normalize(vec3(hx0 - hx1, 2.0 * e, hz0 - hz1));
 
-    // Scanned points sit on the ground, so cliff faces would be nearly
-    // empty. Drop each point a random distance down steep slopes to fill
-    // the faces in, like a scanner hitting the rock wall.
-    vec3 pos = vec3(xz.x, h - aRand * min(slope * 0.3, 2.8), xz.y);
+    // Scanned points sit on top of the ground, so steps and crevices would
+    // look hollow. Where a neighbour is lower (this point is at the top of
+    // a drop), sink the point a random way down the drop to fill the face.
+    float fill = max(0.0, h - min(min(hx0, hx1), min(hz0, hz1)));
+
+    float visible = 1.0;
+    // The canyon walls have their own dense points, so skip the steep band
+    float hw = canyonHalfWidth(q.y);
+    float band = smoothstep(hw, hw + 0.3, canyonDistance(q));
+    if (band > 0.03 && band < 0.97) visible = 0.0;
+    Crag c = nearestCrag(q.y);
+    vec2 vb = q - c.center;          // from the crag's base centre
+    vec2 vt = q - c.center - c.lean; // from its (leaned-over) top centre
+    float rb = length(vb);
+    float rt = length(vt);
+    if (min(rb, rt) < c.radius * 2.0) {
+      float baseEdge = cragOutline(c, atan(vb.y, vb.x), 0.0);
+      float topEdge = cragOutline(c, atan(vt.y, vt.x), 1.0);
+      // Skip points buried in the rock under a crag's sloping wall
+      if (rb < baseEdge && rt > topEdge + 0.04) visible = 0.0;
+      // Crags have their own wall points; filling down their edges here
+      // would draw ruler-straight vertical lines
+      if (rb < baseEdge + 0.15 || rt < topEdge + 0.15) fill = 0.0;
+    }
+    vec3 pos = vec3(xz.x, h - aRand * fill, xz.y);
 
     vLight = lightAmount(n);
     vHeight = h;
     vStrata = sin(pos.y * 26.0 + gnoise(xz * 1.5) * 4.0);
     vRand = aRand;
-    vVisible = 1.0;
+    vShade = 1.0 - smoothstep(8.0, 10.0, abs(xz.x)); // soften the patch's side edges
+    vVisible = visible;
     emit(pos);
   }
 `;
@@ -265,76 +348,103 @@ const cragVertexShader = common + /* glsl */ `
   // once a crag passes the camera its points recycle onto a far-off one.
   const float BAND_END = 14.0;
   const float BAND_LENGTH = 30.0;
-  const float WALL_SHARE = 0.78;
+  const float WALL_SHARE = 0.8;
+
+  // A point on a crag's wall at angle theta and height fraction y01
+  vec3 cragWallPoint(Crag c, float theta, float y01, float base, float top) {
+    vec2 p = c.center + c.lean * y01 + vec2(cos(theta), sin(theta)) * cragOutline(c, theta, y01);
+    return vec3(p.x, mix(base, top, y01), p.y);
+  }
 
   void main() {
     float travel = uTime * TRAVEL;
     float bandZ = BAND_END - BAND_LENGTH + mod(aSeed.x * BAND_LENGTH + travel, BAND_LENGTH);
     Crag c = nearestCrag(bandZ - travel);
 
-    vec2 q;
-    float y;
+    vec3 p; // terrain space: (x, height, distance along the canyon)
     vec3 n;
     float visible = 1.0;
-    float crack = 0.0;
+    float shade = 1.0;
 
     if (aSeed.w < WALL_SHARE) {
-      // ---- wall: on the outline, anywhere from the ground up to the top.
-      // Bunch points onto the side facing the canyon and the camera (the
-      // big visible face) and thin them out round the back.
+      // ---- wall. Blocks: bunch points onto the side facing the canyon and
+      // the camera (the big visible face). Spires: all the way round.
       float facing = atan(0.8, -c.side);
       float s = aSeed.y * 2.0 - 1.0;
-      float theta = facing + 3.14159265 * s * (0.55 + 0.45 * s * s);
+      float theta = mix(facing + 3.14159265 * s * (0.55 + 0.45 * s * s), aSeed.y * TAU, c.spire);
       vec2 dir = vec2(cos(theta), sin(theta));
-      q = c.center + dir * cragOutline(c, theta);
 
-      float base = baseHeight(q);
-      float top = cragTop(c, q);
+      float base = baseHeight(c.center + dir * cragOutline(c, theta, 0.0));
+      float top = cragTop(c, c.center + c.lean + dir * cragOutline(c, theta, 1.0));
       visible = step(0.05, top - base); // ground as high as the crag here: no wall
-      y = mix(base, top, aSeed.z);
 
-      // Outward normal of the outline, roughened a little
+      float y01 = aSeed.z;
+      p = cragWallPoint(c, theta, y01, base, top);
+
+      // Normal from how the face runs around and up the crag
       float e = 0.02;
-      vec2 a = c.center + vec2(cos(theta - e), sin(theta - e)) * cragOutline(c, theta - e);
-      vec2 b = c.center + vec2(cos(theta + e), sin(theta + e)) * cragOutline(c, theta + e);
-      vec2 n2 = normalize(vec2(b.y - a.y, a.x - b.x));
-      n = normalize(vec3(n2.x, gnoise(dir * 4.0 + y * 3.0) * 0.3, n2.y));
+      vec3 around = cragWallPoint(c, theta + e, y01, base, top) - p;
+      vec3 rise = cragWallPoint(c, theta, y01 + e, base, top) - p;
+      n = normalize(cross(rise, around));
+      if (dot(n.xz, dir) < 0.0) n = -n;
 
-      // Dark vertical fissures, and scanner noise in front of / behind the face
-      crack = 1.0 - smoothstep(0.0, 0.06, abs(gnoise(dir * 5.0 + c.seed * 3.1)));
-      q += n2 * (fract(aSeed.z * 53.7 + aSeed.y * 17.3) - 0.5) * 0.06;
+      // Dark fissures snaking up the face, cut back into the rock
+      float fissure = abs(gnoise(dir * 3.0 + vec2(c.seed * 3.1, y01 * 0.8)));
+      float crevice = 1.0 - smoothstep(0.0, 0.05, fissure);
+      p.xz -= dir * crevice * 0.12;
+      shade = 1.0 - 0.7 * crevice;
+
+      // Scanner noise: a little in front of / behind the face
+      p.xz += dir * (fract(aSeed.z * 53.7 + aSeed.y * 17.3) - 0.5) * 0.06;
     } else {
       // ---- top: spread across the footprint
       float theta = aSeed.y * TAU;
-      vec2 dir = vec2(cos(theta), sin(theta));
-      q = c.center + dir * cragOutline(c, theta) * sqrt(aSeed.z);
-      y = cragTop(c, q);
+      vec2 q = c.center + c.lean + vec2(cos(theta), sin(theta)) * cragOutline(c, theta, 1.0) * sqrt(aSeed.z);
+      float y = cragTop(c, q);
       visible = step(baseHeight(q), y);
-
       float e = 0.06;
-      float dx = (cragTop(c, q + vec2(e, 0.0)) - cragTop(c, q - vec2(e, 0.0))) / (2.0 * e);
-      float dz = (cragTop(c, q + vec2(0.0, e)) - cragTop(c, q - vec2(0.0, e))) / (2.0 * e);
+      float dx = (cragTop(c, q + vec2(e, 0.0)) - y) / e;
+      float dz = (cragTop(c, q + vec2(0.0, e)) - y) / e;
       n = normalize(vec3(-dx, 1.0, -dz));
+      p = vec3(q.x, y, q.y);
     }
 
     vLight = lightAmount(n);
-    vHeight = y;
-    vStrata = sin(y * 26.0 + gnoise(q * 1.5) * 4.0);
-    vRand = fract(aSeed.y * 91.7 + aSeed.z * 13.3) * (1.0 - 0.7 * crack);
+    vHeight = p.y;
+    vStrata = sin(p.y * 26.0 + gnoise(p.xz * 1.5) * 4.0);
+    vRand = fract(aSeed.y * 91.7 + aSeed.z * 13.3);
+    vShade = shade;
     vVisible = visible;
-    emit(vec3(q.x, y, q.y + travel));
+    emit(vec3(p.x, p.y, p.z + travel));
   }
 `;
 
-// Dense points on the canyon's side walls, so they still read as solid rock
-// when the camera drops down inside the canyon. Like the terrain points they
-// stay at a fixed world z while the landscape slides past them.
+// Dense points on the canyon's side walls, so they read as solid, varied
+// rock - ledges, bulges, overhangs, fissures and caves - including when the
+// camera drops down inside the canyon. Like the terrain points they stay at
+// a fixed world z while the landscape slides past them.
 //   aSeed.x - which side of the canyon
 //   aSeed.y - height up the wall
 //   aSeed.z - speckle
 //   aSeed.w - scatter in front of / behind the face
 const wallVertexShader = common + /* glsl */ `
   attribute vec4 aSeed;
+
+  // How far the wall face sits back from its foot at height y: positive
+  // digs into the rock, negative bulges out over the floor
+  float wallProfile(float qz, float y, float side) {
+    vec2 p = vec2(qz, y);
+    // lean: some stretches slope back, others stand sheer
+    float o = y * (0.08 + 0.08 * gnoise(vec2(qz * 0.2, side * 4.0)));
+    o += gnoise(p * vec2(0.7, 0.9) + side * 9.1) * 0.35;   // big bulges and hollows
+    o += gnoise(p * 3.2 + side * 2.3) * 0.07;              // little bumps
+    // Ledges: rock layers that stick out or cut back by different amounts,
+    // their edges wandering rather than running straight
+    float layer = floor(y * 1.7 + gnoise(vec2(qz * 0.6, side)) * 0.8);
+    float run = floor(qz * 0.5 + gnoise(vec2(y * 0.8, side + 2.0)) * 0.7);
+    o += (hash01(vec2(layer + side * 17.0, run)).x - 0.5) * 0.22;
+    return max(o, -0.12); // limit overhangs so the camera's path stays clear
+  }
 
   void main() {
     float travel = uTime * TRAVEL;
@@ -344,7 +454,7 @@ const wallVertexShader = common + /* glsl */ `
     float halfWidth = canyonHalfWidth(qz);
     float wallD = halfWidth + 0.15; // middle of the wall's steep band
 
-    // Find where the noise-warped wall actually is at this depth by solving
+    // Find where the noise-warped wall foot is at this depth by solving
     // canyonDistance(x) = wallD with a few Newton steps
     float x = canyonCenter(qz) + side * wallD;
     for (int i = 0; i < 4; i++) {
@@ -359,28 +469,202 @@ const wallVertexShader = common + /* glsl */ `
     // Hide points where the solve missed (the wall folds back on itself)
     // or where a crag stands in front of the wall
     float visible = step(abs(d - wallD), 0.08);
-    if (insideCrag(nearestCrag(qz), q)) visible = 0.0;
+    Crag c = nearestCrag(qz);
+    vec2 cv = q - c.center;
+    if (length(cv) < cragOutline(c, atan(cv.y, cv.x), 0.0) + 0.1) visible = 0.0;
 
-    // Spread up the wall, from the canyon floor to the rim
-    float y = mix(floorHeight(q), rimHeight(q, d, halfWidth), aSeed.y);
-
-    // The wall faces into the canyon: opposite to the way distance grows
+    // Which way the wall faces (into the canyon)
     float e = 0.03;
-    vec2 grad = vec2(
-      canyonDistance(q + vec2(e, 0.0)) - canyonDistance(q - vec2(e, 0.0)),
-      canyonDistance(q + vec2(0.0, e)) - canyonDistance(q - vec2(0.0, e))
-    );
-    vec2 n2 = -normalize(grad);
-    vec3 n = normalize(vec3(n2.x, 0.15 + gnoise(q * 4.0 + y * 3.0) * 0.3, n2.y));
+    vec2 n2 = -normalize(vec2(
+      canyonDistance(q + vec2(e, 0.0)) - d,
+      canyonDistance(q + vec2(0.0, e)) - d
+    ));
 
-    vec2 scatter = n2 * (aSeed.w - 0.5) * 0.08;
+    // Height up the wall, from the canyon floor to the rim
+    float y = mix(floorHeight(q, d, halfWidth), rimHeight(q, d, halfWidth), aSeed.y);
+
+    // Shape the face, and tilt its normal to match
+    float off = wallProfile(qz, y, side);
+    float ep = 0.05;
+    float offY = (wallProfile(qz, y + ep, side) - off) / ep;
+    float offZ = (wallProfile(qz + ep, y, side) - off) / ep;
+    vec3 n = normalize(vec3(n2.x, offY, n2.y + offZ));
+    float shade = 1.0;
+
+    // Crevices: narrow fissures snaking up the wall
+    float fissure = abs(gnoise(vec2(qz * 2.2 + gnoise(vec2(y * 0.9, qz * 0.5)) * 0.8, y * 0.35) + side * 5.0));
+    float crevice = 1.0 - smoothstep(0.0, 0.04, fissure);
+    off += crevice * 0.18;
+    shade *= 1.0 - 0.75 * crevice;
+
+    // Caves: here and there a ragged hollow opens in the wall
+    float caveRun = floor(qz / 3.5);
+    vec2 ca = hash01(vec2(caveRun, side * 7.0 + 3.0));
+    vec2 cb = hash01(vec2(caveRun, side * 7.0 + 11.0));
+    if (ca.x < 0.45) {
+      vec2 mouthCenter = vec2((caveRun + 0.25 + ca.y * 0.5) * 3.5, 0.6 + cb.x * 1.3);
+      vec2 mouthSize = vec2(0.25 + cb.y * 0.35, 0.2 + ca.y * 0.25);
+      vec2 rel = (vec2(qz, y) - mouthCenter) / mouthSize;
+      float mouth = length(rel) + gnoise(rel * 2.1 + caveRun) * 0.35;
+      if (mouth < 1.0) {
+        float depth = sqrt(1.0 - mouth * mouth);
+        off += depth * (0.35 + cb.y * 0.4);
+        shade *= 1.0 - 0.85 * depth;
+        // thin out the inside so the opening reads as a dark hole
+        visible *= step(depth * 0.7, aSeed.w);
+      }
+    }
+
+    // Push back into the rock by the profile, plus a little scanner scatter
+    vec2 xz = q - n2 * off + n2 * (aSeed.w - 0.5) * 0.06;
+    // vertical streaks in the speckle, like mineral staining
+    float streak = gnoise(vec2(qz * 6.0, y * 0.4) + side * 3.0);
 
     vLight = lightAmount(n);
     vHeight = y;
     vStrata = sin(y * 26.0 + gnoise(q * 1.5) * 4.0);
-    vRand = aSeed.z;
+    vRand = clamp(aSeed.z * 0.7 + streak * 0.6 + 0.15, 0.0, 1.0);
+    vShade = shade;
     vVisible = visible;
-    emit(vec3(x + scatter.x, y, z + scatter.y));
+    emit(vec3(xz.x, y, xz.y + travel));
+  }
+`;
+
+// Crooked trees scattered over the landscape, built from points: a leaning
+// trunk, 3-5 drooping branches, 2-3 twigs per branch, and loose leaf
+// clumps at the twig tips. Like the crags they ride along with the terrain.
+const treeVertexShader = common + /* glsl */ `
+  // x: spot in the looping band (picks the tree's row), y: column,
+  // z: which part (trunk / branch / twig / leaves), w: distance along it
+  attribute vec4 aSeed;
+  // x: which branch, y: which twig, z: angle around the limb, w: leaf scatter
+  attribute vec4 aSeed2;
+
+  const float BAND_END = 14.0;
+  const float BAND_LENGTH = 32.0;
+  const float TREE_CELL = 4.0;  // one tree per 4 x 4 patch of ground...
+  const float TREE_COLS = 5.0;  // ...in 5 columns across x from -10 to 10
+  const float X_START = -10.0;
+
+  // Two unit vectors perpendicular to d (and to each other)
+  void basis(vec3 d, out vec3 u, out vec3 v) {
+    vec3 ref = abs(d.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    u = normalize(cross(d, ref));
+    v = cross(d, u);
+  }
+
+  // A crooked limb: from s along dir for len, sagging by droop and
+  // wandering a little; the point at fraction t of the way along
+  vec3 limbPoint(vec3 s, vec3 dir, float len, float droop, float seed, float t) {
+    vec3 u;
+    vec3 v;
+    basis(dir, u, v);
+    vec3 p = s + dir * len * t;
+    p.y -= droop * len * t * t;
+    p += (u * gnoise(vec2(t * 3.0, seed)) + v * gnoise(vec2(t * 3.0, seed + 5.0))) * len * 0.15;
+    return p;
+  }
+
+  void main() {
+    float travel = uTime * TRAVEL;
+    float bandZ = BAND_END - BAND_LENGTH + mod(aSeed.x * BAND_LENGTH + travel, BAND_LENGTH);
+    float row = floor((bandZ - travel) / TREE_CELL);
+    float col = floor(aSeed.y * TREE_COLS);
+    vec2 h1 = hash01(vec2(col, row) + 41.0);
+    vec2 h2 = hash01(vec2(col, row) + 87.0);
+    vec2 h3 = hash01(vec2(col, row) + 133.0);
+    float tseed = col * 13.0 + row * 7.0;
+
+    // Root, jittered inside its patch (terrain space)
+    vec2 spot = vec2(X_START + (col + 0.15 + h1.x * 0.7) * TREE_CELL, (row + 0.15 + h1.y * 0.7) * TREE_CELL);
+
+    // Only grow where there's footing: on the rim back from the edge, or on
+    // the canyon floor by the walls where it's wide - never in the camera's
+    // flight path, on the walls themselves, or inside a crag
+    float d = canyonDistance(spot);
+    float hw = canyonHalfWidth(spot.y);
+    float visible = (d > 1.8 && d < hw - 0.15) || d > hw + 0.9 ? 1.0 : 0.0;
+    Crag c = nearestCrag(spot.y);
+    vec2 cv = spot - c.center;
+    if (length(cv) < cragOutline(c, atan(cv.y, cv.x), 0.0) + 0.4) visible = 0.0;
+    vec3 root = vec3(spot.x, baseHeight(spot) - 0.05, spot.y);
+
+    // Overall shape: size, lean, number of branches, which way they start
+    float size = 0.6 + h2.x * 0.9;
+    float trunkLen = 0.9 * size;
+    vec3 trunkDir = normalize(vec3((h2.y - 0.5) * 0.5, 1.0, (h3.x - 0.5) * 0.5));
+    float branches = 3.0 + floor(h3.y * 3.0);
+    float spin = h1.x * TAU;
+
+    // Pick the limb this point sits on: the trunk, a branch, or a twig
+    float part = aSeed.z;
+    vec3 s = root;
+    vec3 dir = trunkDir;
+    float len = trunkLen;
+    float droop = 0.0;
+    float seed = tseed;
+    float thick = 0.045 * size;
+
+    if (part >= 0.25) {
+      float i = floor(aSeed2.x * branches);
+      vec2 bh = hash01(vec2(tseed, i + 1.0));
+      float along = 0.35 + (i + 0.5 + (bh.x - 0.5) * 0.6) / branches * 0.6;
+      float az = spin + (i + bh.y * 0.6) / branches * TAU;
+      float el = 0.3 + bh.x * 0.7;
+      s = limbPoint(root, trunkDir, trunkLen, 0.0, tseed, along);
+      dir = vec3(cos(el) * cos(az), sin(el), cos(el) * sin(az));
+      len = trunkLen * (0.45 + bh.y * 0.35) * (1.0 - 0.35 * (along - 0.35));
+      droop = 0.1 + bh.y * 0.35;
+      seed = tseed + i * 3.7;
+      thick = 0.022 * size;
+
+      if (part >= 0.65) {
+        float twigs = 2.0 + floor(bh.x * 2.0);
+        float j = floor(aSeed2.y * twigs);
+        vec2 th = hash01(vec2(seed, j + 20.0));
+        float ut = 0.35 + (j + 0.5) / twigs * 0.6;
+        vec3 u;
+        vec3 v;
+        basis(dir, u, v);
+        s = limbPoint(s, dir, len, droop, seed, ut);
+        dir = normalize(dir + (u * (th.x - 0.5) + v * (th.y - 0.5)) * 1.6 + vec3(0.0, 0.35, 0.0));
+        len *= 0.35 + th.y * 0.3;
+        droop = 0.15;
+        seed += j * 5.3 + 11.0;
+        thick = 0.011 * size;
+      }
+    }
+
+    vec3 p;
+    vec3 n;
+    float t = aSeed.w;
+    if (part >= 0.9) {
+      // Leaves: a loose clump around the twig's tip
+      vec3 tip = limbPoint(s, dir, len, droop, seed, 1.0);
+      float ct = aSeed2.w * 2.0 - 1.0;
+      float phi = aSeed2.z * TAU;
+      float st = sqrt(max(0.0, 1.0 - ct * ct));
+      n = vec3(st * cos(phi), ct, st * sin(phi));
+      p = tip + n * (0.08 + 0.1 * size) * pow(t, 0.33);
+    } else {
+      // On the limb's surface, thinning toward its end
+      vec3 axisP = limbPoint(s, dir, len, droop, seed, t);
+      vec3 axisD = normalize(limbPoint(s, dir, len, droop, seed, t + 0.03) - axisP);
+      vec3 u;
+      vec3 v;
+      basis(axisD, u, v);
+      float ang = aSeed2.z * TAU;
+      n = u * cos(ang) + v * sin(ang);
+      p = axisP + n * thick * (1.0 - 0.6 * t);
+    }
+
+    vLight = lightAmount(n);
+    vHeight = p.y;
+    vStrata = 0.0;
+    vRand = fract(aSeed2.z * 37.1 + aSeed.w * 11.3);
+    vShade = 0.9;
+    vVisible = visible;
+    emit(vec3(p.x, p.y, p.z + travel));
   }
 `;
 
@@ -390,6 +674,7 @@ const fragmentShader = /* glsl */ `
   varying float vStrata;
   varying float vDepth;
   varying float vRand;
+  varying float vShade;
   varying float vVisible;
 
   void main() {
@@ -399,20 +684,22 @@ const fragmentShader = /* glsl */ `
     float radialAlpha = smoothstep(0.5, 0.15, dist);
 
     // Palette sampled from the reference scan
-    vec3 shadow = vec3(0.03, 0.12, 0.20);  // deep navy
+    vec3 shadow = vec3(0.05, 0.17, 0.29);  // deep navy (still visible in shade)
     vec3 mid    = vec3(0.08, 0.42, 0.48);  // teal
     vec3 lit    = vec3(0.30, 1.00, 0.52);  // bright scan green
 
     float l = vLight;
-    vec3 color = mix(shadow, mid, smoothstep(0.05, 0.45, l));
+    vec3 color = mix(shadow, mid, smoothstep(0.0, 0.45, l));
     color = mix(color, lit, smoothstep(0.45, 0.9, l));
 
-    // Rock strata streaks and per-point speckle
+    // Rock strata streaks, per-point speckle, and darkening for fissures,
+    // caves and the patch edges
     color *= 0.82 + 0.18 * vStrata;
     color *= 0.75 + 0.5 * vRand;
+    color *= vShade;
 
     // Low ground sinks into darkness, high ground holds its colour
-    color *= mix(0.45, 1.0, smoothstep(0.0, 2.5, vHeight));
+    color *= mix(0.62, 1.0, smoothstep(0.0, 2.5, vHeight));
 
     // Distance fog so the far terrain dissolves into black
     float fogAlpha = smoothstep(24.0, 5.0, vDepth);
@@ -422,9 +709,10 @@ const fragmentShader = /* glsl */ `
 `;
 
 // Point budgets (desktop; phones get a fraction - see CanyonScan)
-const TERRAIN_POINTS = 200000;
-const CRAG_POINTS = 140000;
-const WALL_POINTS = 60000;
+const TERRAIN_POINTS = 180000;
+const CRAG_POINTS = 120000;
+const WALL_POINTS = 70000;
+const TREE_POINTS = 60000;
 
 // Terrain patch: wide across, and long down the canyon in front of the camera
 const X_MIN = -10;
@@ -435,8 +723,8 @@ const Z_MAX = 6;
 // ---- camera flight ---------------------------------------------------------
 const CAMERA_Z = 5;
 const LOOK_AHEAD = 7;       // how far down the canyon the camera aims
-const CRUISE_HEIGHT = 4.1;  // just above the rim (rim ~2.3-3.5, crag tops ~4.3-5.4)
-const CANYON_HEIGHT = 1.1;  // down between the walls, above the floor (~0-0.45)
+const CRUISE_HEIGHT = 4.9;  // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, spires higher)
+const CANYON_HEIGHT = 1.25; // down between the walls, clear of the boulders
 const DIVE_PERIOD = 70;     // seconds per cruise -> dive into the canyon -> climb out
 
 // Mirrors canyonCenter() in the shader
@@ -473,32 +761,49 @@ function ScanPoints({ vertexShader, attributes, uniforms }) {
 }
 
 function CanyonScan() {
-  const { terrain, crags, walls, uniforms } = useMemo(() => {
+  const { terrain, crags, walls, trees, uniforms } = useMemo(() => {
     // Phones get fewer points: these shaders are heavy and run every frame
     const density = window.innerWidth < 768 ? 0.45 : 1;
-    const terrainCount = Math.round(TERRAIN_POINTS * density);
-    const cragCount = Math.round(CRAG_POINTS * density);
-    const wallCount = Math.round(WALL_POINTS * density);
+    const count = (n) => Math.round(n * density);
+    const terrainCount = count(TERRAIN_POINTS);
+    const cragCount = count(CRAG_POINTS);
+    const wallCount = count(WALL_POINTS);
+    const treeCount = count(TREE_POINTS);
 
-    // Randomly scattered ground points (no grid) so it reads as scan data
+    // Randomly scattered ground points (no grid) so it reads as scan data,
+    // with extra packed around the canyon where the camera looks closest.
+    // Sorted by x so neighbouring points in the buffer are near each other,
+    // which lets the GPU skip the canyon-floor maths for whole batches of
+    // rim points.
+    const xs = Float32Array.from({ length: terrainCount }, () =>
+      Math.random() < 0.3 ? -4.5 + Math.random() * 9 : X_MIN + Math.random() * (X_MAX - X_MIN)
+    ).sort();
+    // Depth: denser close to the camera, where gaps between points show
+    // most, and thinner far off where the fog swallows them anyway
+    const nearBiasedZ = (power) => Z_MAX - (Z_MAX - Z_MIN) * Math.random() ** power;
     const terrainPositions = new Float32Array(terrainCount * 3);
     for (let i = 0; i < terrainCount; i++) {
-      terrainPositions[i * 3] = X_MIN + Math.random() * (X_MAX - X_MIN);
-      terrainPositions[i * 3 + 2] = Z_MIN + Math.random() * (Z_MAX - Z_MIN);
+      terrainPositions[i * 3] = xs[i];
+      terrainPositions[i * 3 + 2] = nearBiasedZ(1.35);
     }
 
     // Wall points only need a world z; the shader finds the wall at that depth
     const wallPositions = new Float32Array(wallCount * 3);
     for (let i = 0; i < wallCount; i++) {
-      wallPositions[i * 3 + 2] = Z_MIN + Math.random() * (Z_MAX - Z_MIN);
+      wallPositions[i * 3 + 2] = nearBiasedZ(1.6);
     }
 
-    // Crag points are placed entirely in the shader from their seeds; the
-    // empty position buffer is only there so three.js knows how many to draw.
+    // Crag and tree points are placed entirely in the shader from their
+    // seeds; the empty position buffers only tell three.js how many to draw.
     return {
       terrain: { position: [terrainPositions, 3], aRand: [randoms(terrainCount), 1] },
       crags: { position: [new Float32Array(cragCount * 3), 3], aSeed: [randoms(cragCount * 4), 4] },
       walls: { position: [wallPositions, 3], aSeed: [randoms(wallCount * 4), 4] },
+      trees: {
+        position: [new Float32Array(treeCount * 3), 3],
+        aSeed: [randoms(treeCount * 4), 4],
+        aSeed2: [randoms(treeCount * 4), 4],
+      },
       uniforms: { uTime: { value: 0 } },
     };
   }, []);
@@ -524,7 +829,7 @@ function CanyonScan() {
     const tz = z - LOOK_AHEAD;
     camera.lookAt(
       canyonCenter(tz - travel) + Math.sin(t * 0.17) * 0.4,
-      lerp(1.6, 0.9, dive) + Math.sin(t * 0.13) * 0.2,
+      lerp(2.2, 0.9, dive) + Math.sin(t * 0.13) * 0.2,
       tz
     );
 
@@ -537,6 +842,7 @@ function CanyonScan() {
       <ScanPoints vertexShader={terrainVertexShader} attributes={terrain} uniforms={uniforms} />
       <ScanPoints vertexShader={wallVertexShader} attributes={walls} uniforms={uniforms} />
       <ScanPoints vertexShader={cragVertexShader} attributes={crags} uniforms={uniforms} />
+      <ScanPoints vertexShader={treeVertexShader} attributes={trees} uniforms={uniforms} />
     </>
   );
 }
