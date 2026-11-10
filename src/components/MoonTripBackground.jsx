@@ -50,21 +50,68 @@ const vertexShader = /* glsl */ `
     return sum; // ~[0, 1]
   }
 
+  vec2 hash01(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return fract(sin(p) * 43758.5453);
+  }
+
+  // Voronoi: which irregular cell p falls in (id) and that cell's centre.
+  void voronoi(vec2 p, out vec2 cellId, out vec2 cellPos) {
+    vec2 n = floor(p);
+    vec2 f = fract(p);
+    float best = 8.0;
+    cellId = n;
+    cellPos = n;
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        vec2 g = vec2(float(i), float(j));
+        vec2 o = hash01(n + g);
+        vec2 r = g + o - f;
+        float d = dot(r, r);
+        if (d < best) {
+          best = d;
+          cellId = n + g;
+          cellPos = n + g + o;
+        }
+      }
+    }
+  }
+
   // ---- terrain -------------------------------------------------------
-  // World-space height at a ground position. Ridges + broad basins, then
-  // terraced so the land breaks into flat shelves with steep cliff risers.
+  // A winding canyon down the middle (running away from the camera along z)
+  // with near-vertical walls, and fractured rock slabs on either side.
   float heightAt(vec2 xz) {
-    vec2 p = xz * 0.32 + vec2(uTime * 0.03, uTime * 0.018);
-    float h = ridged(p) * 1.1 + gnoise(p * 0.4) * 0.9;
+    // Travel: the terrain slides toward the camera over time
+    vec2 q = vec2(xz.x, xz.y - uTime * 0.25);
 
-    float steps = 4.0;
-    float s = h * steps;
-    float shelf = (floor(s) + pow(fract(s), 5.0)) / steps; // flat, then a sharp rise
-    h = mix(h, shelf, 0.7);
+    // Canyon centreline meanders gently
+    float center = sin(q.y * 0.18) * 1.0 + sin(q.y * 0.07 + 1.3) * 0.6;
 
-    // fine rocky roughness
-    h += gnoise(xz * 3.1) * 0.035 + gnoise(xz * 7.3) * 0.015;
-    return h * 2.4;
+    // Distance from the canyon, warped by noise so the rim zigzags
+    float d = abs(xz.x - center) + gnoise(q * 0.9) * 0.6 + gnoise(q * 2.3) * 0.25;
+    float halfWidth = 1.6 + gnoise(vec2(q.y * 0.15, 3.7)) * 0.6;
+
+    // 0 on the canyon floor, 1 up on the rim - a very steep step = cliff wall
+    float wall = smoothstep(halfWidth, halfWidth + 0.3, d);
+
+    // Valley floor: low, with rubbly ridges
+    float floorH = ridged(q * 0.6) * 0.35 + gnoise(q * 3.0) * 0.05;
+
+    // Rim: each Voronoi cell is its own tilted rock slab at its own height,
+    // so neighbouring slabs meet in sharp fractured drops.
+    vec2 cellId;
+    vec2 cellPos;
+    vec2 s = q * 0.55;
+    voronoi(s, cellId, cellPos);
+    vec2 tilt = hash01(cellId) * 2.0 - 1.0;
+    float slab = 2.3
+      + hash01(cellId + 7.3).x * 0.9       // per-slab height
+      + dot(s - cellPos, tilt) * 0.7;      // per-slab tilt
+    slab += (d - halfWidth) * 0.12;        // land keeps rising away from the canyon
+    slab += ridged(q * 0.8) * 0.4;         // weathered tops
+    slab += gnoise(q * 4.0) * 0.06 + gnoise(q * 9.0) * 0.025; // fine roughness
+
+    return mix(floorH, slab, wall);
   }
 
   void main() {
@@ -83,10 +130,11 @@ const vertexShader = /* glsl */ `
     // Scanned points sit on the ground, so vertical cliff faces would be
     // nearly empty. Drop each point a random distance down the slope to
     // fill the faces in, like a scanner hitting the rock wall.
-    pos.y = h - aRand * min(slope * 0.35, 1.6);
+    pos.y = h - aRand * min(slope * 0.3, 2.8);
 
-    // Side light: lit faces turn bright green, the rest fall into shadow
-    vec3 lightDir = normalize(vec3(-0.75, 0.45, 0.5));
+    // Light from front-left: walls facing the camera or the canyon's left
+    // side glow green, slab tops stay teal, the rest falls into shadow
+    vec3 lightDir = normalize(vec3(-0.55, 0.35, 0.75));
     vLight = clamp(dot(normal, lightDir), 0.0, 1.0);
 
     vHeight = h;
@@ -128,17 +176,22 @@ const fragmentShader = /* glsl */ `
     color *= 0.75 + 0.5 * vRand;
 
     // Low ground sinks into darkness, high ground holds its colour
-    color *= mix(0.45, 1.0, smoothstep(-0.5, 2.0, vHeight));
+    color *= mix(0.45, 1.0, smoothstep(0.0, 2.5, vHeight));
 
     // Distance fog so the far terrain dissolves into black
-    float fogAlpha = smoothstep(19.0, 4.0, vDepth);
+    float fogAlpha = smoothstep(24.0, 5.0, vDepth);
 
     gl_FragColor = vec4(color, radialAlpha * fogAlpha * 0.9);
   }
 `;
 
-const POINT_COUNT = 160000;
-const EXTENT = 18; // terrain spans [-9, 9] on x and z
+const POINT_COUNT = 200000;
+// Terrain patch: wide across, and long down the canyon (camera sits at z ≈ 7.5
+// looking toward -z, so most of the points go out in front of it).
+const X_MIN = -10;
+const X_MAX = 10;
+const Z_MIN = -18;
+const Z_MAX = 6;
 
 function PointCloudScan() {
   const pointsRef = useRef();
@@ -148,9 +201,9 @@ function PointCloudScan() {
     const posArray = new Float32Array(POINT_COUNT * 3);
     const randArray = new Float32Array(POINT_COUNT);
     for (let i = 0; i < POINT_COUNT; i++) {
-      posArray[i * 3] = (Math.random() - 0.5) * EXTENT;
+      posArray[i * 3] = X_MIN + Math.random() * (X_MAX - X_MIN);
       posArray[i * 3 + 1] = 0;
-      posArray[i * 3 + 2] = (Math.random() - 0.5) * EXTENT;
+      posArray[i * 3 + 2] = Z_MIN + Math.random() * (Z_MAX - Z_MIN);
       randArray[i] = Math.random();
     }
     return {
@@ -165,14 +218,14 @@ function PointCloudScan() {
     uniforms.uTime.value = elapsed;
 
     if (pointsRef.current) {
-      // Slow, dreamy drift
-      pointsRef.current.rotation.y = Math.sin(elapsed * 0.08) * 0.35 + pointer.x * 0.15;
-      pointsRef.current.rotation.x = 0.25 + Math.cos(elapsed * 0.06) * 0.08 + pointer.y * 0.08;
+      // Gentle sway - small enough that the view stays pointed down the canyon
+      pointsRef.current.rotation.y = Math.sin(elapsed * 0.08) * 0.1 + pointer.x * 0.15;
+      pointsRef.current.rotation.x = 0.18 + Math.cos(elapsed * 0.06) * 0.04 + pointer.y * 0.08;
     }
   });
 
   return (
-    <points ref={pointsRef} position={[0, -2.2, 0]}>
+    <points ref={pointsRef} position={[0, -2.6, 0]}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         <bufferAttribute attach="attributes-aRand" args={[rands, 1]} />
@@ -200,7 +253,7 @@ export default function MoonTripBackground() {
         pointerEvents: 'none',
       }}
     >
-      <Canvas camera={{ position: [0, 2.2, 7.5], fov: 55 }} dpr={[1, 2]}>
+      <Canvas camera={{ position: [0, 1.6, 7.5], fov: 55 }} dpr={[1, 2]}>
         <PointCloudScan />
       </Canvas>
     </div>
