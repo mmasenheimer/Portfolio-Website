@@ -1,17 +1,23 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 
 // LiDAR-style canyon scan: scattered points over a winding canyon with
-// fractured rock slabs on either side, plus tall faceted crags jutting up
-// from the rim. Points are coloured by how much their surface faces the
-// light: lit faces glow green, the rest fall off to teal and navy.
+// fractured rock slabs on either side and tall faceted crags jutting up from
+// the rim. Points are coloured by how much their surface faces the light:
+// lit faces glow green, the rest fall off to teal and navy. The camera
+// follows the canyon, cruising above the rim and now and then dropping down
+// to fly between the walls.
 
-// Shared by both vertex shaders (terrain points and crag points)
+// How fast the landscape flows toward the camera (units per second). Shared
+// with the shaders so the camera can keep tracking the canyon as it moves.
+const TRAVEL = 0.25;
+
+// Shared by all three vertex shaders (terrain, crags, canyon walls)
 const common = /* glsl */ `
   uniform float uTime;
 
   const float TAU = 6.2831853;
-  const float TRAVEL = 0.25;      // how fast the terrain flows toward the camera
+  const float TRAVEL = ${TRAVEL.toFixed(4)};
   const float CRAG_PERIOD = 9.0;  // spacing between crags along the canyon
   const float CRAG_SIDES = 7.0;   // facets around each crag's outline
 
@@ -87,6 +93,7 @@ const common = /* glsl */ `
   // q is "terrain space": x across the canyon, y along it. The whole
   // landscape slides toward the camera: world z = q.y + uTime * TRAVEL.
 
+  // (mirrored in JS below so the camera can follow it)
   float canyonCenter(float z) {
     return sin(z * 0.18) * 1.0 + sin(z * 0.07 + 1.3) * 0.6;
   }
@@ -95,20 +102,19 @@ const common = /* glsl */ `
     return 1.6 + gnoise(vec2(z * 0.15, 3.7)) * 0.6;
   }
 
-  // Ground height without the crags: canyon floor plus fractured rim slabs
-  float baseHeight(vec2 q) {
-    // Distance from the canyon, warped by noise so the rim zigzags
-    float d = abs(q.x - canyonCenter(q.y)) + gnoise(q * 0.9) * 0.6 + gnoise(q * 2.3) * 0.25;
-    float halfWidth = canyonHalfWidth(q.y);
+  // Distance from the canyon's centreline, warped by noise so the rim zigzags
+  float canyonDistance(vec2 q) {
+    return abs(q.x - canyonCenter(q.y)) + gnoise(q * 0.9) * 0.6 + gnoise(q * 2.3) * 0.25;
+  }
 
-    // 0 on the canyon floor, 1 up on the rim - a very steep step = cliff wall
-    float wall = smoothstep(halfWidth, halfWidth + 0.3, d);
+  // Valley floor: low, with rubbly ridges
+  float floorHeight(vec2 q) {
+    return ridged(q * 0.6) * 0.35 + gnoise(q * 3.0) * 0.05;
+  }
 
-    // Valley floor: low, with rubbly ridges
-    float floorH = ridged(q * 0.6) * 0.35 + gnoise(q * 3.0) * 0.05;
-
-    // Rim: each Voronoi cell is its own tilted rock slab at its own height,
-    // so neighbouring slabs meet in sharp fractured drops.
+  // Rim: each Voronoi cell is its own tilted rock slab at its own height,
+  // so neighbouring slabs meet in sharp fractured drops.
+  float rimHeight(vec2 q, float d, float halfWidth) {
     vec2 cellId;
     vec2 cellPos;
     vec2 s = q * 0.55;
@@ -120,14 +126,21 @@ const common = /* glsl */ `
     slab += (d - halfWidth) * 0.12;        // land keeps rising away from the canyon
     slab += ridged(q * 0.8) * 0.4;         // weathered tops
     slab += gnoise(q * 4.0) * 0.06 + gnoise(q * 9.0) * 0.025; // fine roughness
+    return slab;
+  }
 
-    return mix(floorH, slab, wall);
+  // Ground height without the crags
+  float baseHeight(vec2 q) {
+    float d = canyonDistance(q);
+    float halfWidth = canyonHalfWidth(q.y);
+    // 0 on the canyon floor, 1 up on the rim - a very steep step = cliff wall
+    float wall = smoothstep(halfWidth, halfWidth + 0.3, d);
+    return mix(floorHeight(q), rimHeight(q, d, halfWidth), wall);
   }
 
   // ---- crags ---------------------------------------------------------
-  // Tall faceted rock towers spaced along the canyon, alternating sides.
-  // Each stands right at the rim, so its inner face drops all the way to
-  // the canyon floor.
+  // Tall faceted rock towers spaced along the canyon, alternating sides,
+  // standing at the rim so their inner face can drop toward the floor.
   struct Crag {
     vec2 center;  // terrain space
     float radius;
@@ -143,7 +156,8 @@ const common = /* glsl */ `
     c.side = mod(k, 2.0) < 0.5 ? -1.0 : 1.0;
     c.radius = 1.5 + h.y * 0.6;
     float z = k * CRAG_PERIOD + (h.x - 0.5) * 2.0;
-    c.center = vec2(canyonCenter(z) + c.side * (canyonHalfWidth(z) + c.radius * 0.85), z);
+    // set back enough that the camera's path down the canyon stays clear
+    c.center = vec2(canyonCenter(z) + c.side * (canyonHalfWidth(z) + c.radius), z);
     c.top = 3.6 + h.x * 0.6;
     return c;
   }
@@ -158,9 +172,14 @@ const common = /* glsl */ `
     float i = floor(a);
     float r0 = hash01(vec2(c.seed * 13.1 + mod(i, CRAG_SIDES), 5.3)).x;
     float r1 = hash01(vec2(c.seed * 13.1 + mod(i + 1.0, CRAG_SIDES), 5.3)).x;
-    float r = 0.7 + 0.6 * mix(r0, r1, a - i);                         // straight-ish facets
+    float r = 0.7 + 0.6 * mix(r0, r1, a - i);                              // straight-ish facets
     r += gnoise(vec2(cos(theta), sin(theta)) * 3.0 + c.seed * 7.7) * 0.08; // chips
     return c.radius * r;
+  }
+
+  bool insideCrag(Crag c, vec2 q) {
+    vec2 v = q - c.center;
+    return length(v) < cragOutline(c, atan(v.y, v.x));
   }
 
   // Crag top: a tilted slab, highest along the canyon edge, with a broken crest
@@ -198,7 +217,7 @@ const common = /* glsl */ `
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mvPosition;
     vDepth = -mvPosition.z;
-    gl_PointSize = clamp(14.0 / -mvPosition.z, 1.0, 3.2);
+    gl_PointSize = clamp(16.0 / -mvPosition.z, 1.0, 4.0);
   }
 `;
 
@@ -307,6 +326,64 @@ const cragVertexShader = common + /* glsl */ `
   }
 `;
 
+// Dense points on the canyon's side walls, so they still read as solid rock
+// when the camera drops down inside the canyon. Like the terrain points they
+// stay at a fixed world z while the landscape slides past them.
+//   aSeed.x - which side of the canyon
+//   aSeed.y - height up the wall
+//   aSeed.z - speckle
+//   aSeed.w - scatter in front of / behind the face
+const wallVertexShader = common + /* glsl */ `
+  attribute vec4 aSeed;
+
+  void main() {
+    float travel = uTime * TRAVEL;
+    float z = position.z;
+    float qz = z - travel;
+    float side = aSeed.x < 0.5 ? -1.0 : 1.0;
+    float halfWidth = canyonHalfWidth(qz);
+    float wallD = halfWidth + 0.15; // middle of the wall's steep band
+
+    // Find where the noise-warped wall actually is at this depth by solving
+    // canyonDistance(x) = wallD with a few Newton steps
+    float x = canyonCenter(qz) + side * wallD;
+    for (int i = 0; i < 4; i++) {
+      float f = canyonDistance(vec2(x, qz)) - wallD;
+      float df = (canyonDistance(vec2(x + 0.01, qz)) - canyonDistance(vec2(x - 0.01, qz))) / 0.02;
+      df = abs(df) < 0.2 ? side * 0.2 : df;
+      x -= clamp(f / df, -0.4, 0.4);
+    }
+    vec2 q = vec2(x, qz);
+    float d = canyonDistance(q);
+
+    // Hide points where the solve missed (the wall folds back on itself)
+    // or where a crag stands in front of the wall
+    float visible = step(abs(d - wallD), 0.08);
+    if (insideCrag(nearestCrag(qz), q)) visible = 0.0;
+
+    // Spread up the wall, from the canyon floor to the rim
+    float y = mix(floorHeight(q), rimHeight(q, d, halfWidth), aSeed.y);
+
+    // The wall faces into the canyon: opposite to the way distance grows
+    float e = 0.03;
+    vec2 grad = vec2(
+      canyonDistance(q + vec2(e, 0.0)) - canyonDistance(q - vec2(e, 0.0)),
+      canyonDistance(q + vec2(0.0, e)) - canyonDistance(q - vec2(0.0, e))
+    );
+    vec2 n2 = -normalize(grad);
+    vec3 n = normalize(vec3(n2.x, 0.15 + gnoise(q * 4.0 + y * 3.0) * 0.3, n2.y));
+
+    vec2 scatter = n2 * (aSeed.w - 0.5) * 0.08;
+
+    vLight = lightAmount(n);
+    vHeight = y;
+    vStrata = sin(y * 26.0 + gnoise(q * 1.5) * 4.0);
+    vRand = aSeed.z;
+    vVisible = visible;
+    emit(vec3(x + scatter.x, y, z + scatter.y));
+  }
+`;
+
 const fragmentShader = /* glsl */ `
   varying float vLight;
   varying float vHeight;
@@ -344,90 +421,135 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
+// Point budgets (desktop; phones get a fraction - see CanyonScan)
 const TERRAIN_POINTS = 200000;
 const CRAG_POINTS = 140000;
-// Terrain patch: wide across, and long down the canyon (camera sits at z ≈ 7.5
-// looking toward -z, so most of the points go out in front of it).
+const WALL_POINTS = 60000;
+
+// Terrain patch: wide across, and long down the canyon in front of the camera
 const X_MIN = -10;
 const X_MAX = 10;
 const Z_MIN = -18;
 const Z_MAX = 6;
 
-function CanyonScan() {
-  const groupRef = useRef();
+// ---- camera flight ---------------------------------------------------------
+const CAMERA_Z = 5;
+const LOOK_AHEAD = 7;       // how far down the canyon the camera aims
+const CRUISE_HEIGHT = 4.1;  // just above the rim (rim ~2.3-3.5, crag tops ~4.3-5.4)
+const CANYON_HEIGHT = 1.1;  // down between the walls, above the floor (~0-0.45)
+const DIVE_PERIOD = 70;     // seconds per cruise -> dive into the canyon -> climb out
 
-  const { terrain, crags, uniforms } = useMemo(() => {
-    // Randomly scattered points (no grid) so it reads as scan data
-    const terrainPositions = new Float32Array(TERRAIN_POINTS * 3);
-    const terrainRands = new Float32Array(TERRAIN_POINTS);
-    for (let i = 0; i < TERRAIN_POINTS; i++) {
+// Mirrors canyonCenter() in the shader
+const canyonCenter = (z) => Math.sin(z * 0.18) + Math.sin(z * 0.07 + 1.3) * 0.6;
+// Its second derivative: how sharply the canyon is bending (for banking)
+const canyonBend = (z) => -0.0324 * Math.sin(z * 0.18) - 0.00294 * Math.sin(z * 0.07 + 1.3);
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (a, b, x) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+const randoms = (n) => Float32Array.from({ length: n }, () => Math.random());
+
+function ScanPoints({ vertexShader, attributes, uniforms }) {
+  // depthWrite lets nearer rock hide what's behind it, so surfaces read as
+  // solid. frustumCulled is off because the shaders move every point away
+  // from where three.js thinks it is.
+  return (
+    <points frustumCulled={false}>
+      <bufferGeometry>
+        {Object.entries(attributes).map(([name, [array, size]]) => (
+          <bufferAttribute key={name} attach={`attributes-${name}`} args={[array, size]} />
+        ))}
+      </bufferGeometry>
+      <shaderMaterial
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
+        uniforms={uniforms}
+        transparent
+        depthWrite
+      />
+    </points>
+  );
+}
+
+function CanyonScan() {
+  const { terrain, crags, walls, uniforms } = useMemo(() => {
+    // Phones get fewer points: these shaders are heavy and run every frame
+    const density = window.innerWidth < 768 ? 0.45 : 1;
+    const terrainCount = Math.round(TERRAIN_POINTS * density);
+    const cragCount = Math.round(CRAG_POINTS * density);
+    const wallCount = Math.round(WALL_POINTS * density);
+
+    // Randomly scattered ground points (no grid) so it reads as scan data
+    const terrainPositions = new Float32Array(terrainCount * 3);
+    for (let i = 0; i < terrainCount; i++) {
       terrainPositions[i * 3] = X_MIN + Math.random() * (X_MAX - X_MIN);
       terrainPositions[i * 3 + 2] = Z_MIN + Math.random() * (Z_MAX - Z_MIN);
-      terrainRands[i] = Math.random();
+    }
+
+    // Wall points only need a world z; the shader finds the wall at that depth
+    const wallPositions = new Float32Array(wallCount * 3);
+    for (let i = 0; i < wallCount; i++) {
+      wallPositions[i * 3 + 2] = Z_MIN + Math.random() * (Z_MAX - Z_MIN);
     }
 
     // Crag points are placed entirely in the shader from their seeds; the
     // empty position buffer is only there so three.js knows how many to draw.
-    const cragPositions = new Float32Array(CRAG_POINTS * 3);
-    const cragSeeds = new Float32Array(CRAG_POINTS * 4);
-    for (let i = 0; i < cragSeeds.length; i++) cragSeeds[i] = Math.random();
-
     return {
-      terrain: { positions: terrainPositions, rands: terrainRands },
-      crags: { positions: cragPositions, seeds: cragSeeds },
+      terrain: { position: [terrainPositions, 3], aRand: [randoms(terrainCount), 1] },
+      crags: { position: [new Float32Array(cragCount * 3), 3], aSeed: [randoms(cragCount * 4), 4] },
+      walls: { position: [wallPositions, 3], aSeed: [randoms(wallCount * 4), 4] },
       uniforms: { uTime: { value: 0 } },
     };
   }, []);
 
-  useFrame(({ clock, pointer }) => {
-    const elapsed = clock.getElapsedTime();
-    uniforms.uTime.value = elapsed;
+  useFrame(({ clock, camera }) => {
+    const t = clock.getElapsedTime();
+    uniforms.uTime.value = t;
+    const travel = t * TRAVEL;
 
-    if (groupRef.current) {
-      // Gentle sway - small enough that the view stays pointed down the canyon
-      groupRef.current.rotation.y = Math.sin(elapsed * 0.08) * 0.1 + pointer.x * 0.15;
-      groupRef.current.rotation.x = 0.18 + Math.cos(elapsed * 0.06) * 0.04 + pointer.y * 0.08;
-    }
+    // 0 while cruising above the rim, 1 while flying down inside the canyon
+    const cycle = 0.5 - 0.5 * Math.cos((t / DIVE_PERIOD) * Math.PI * 2);
+    const dive = smoothstep(0.35, 0.85, cycle);
+
+    // Follow the canyon's centreline, drifting side to side (less so between
+    // the walls), easing forward and back, and bobbing gently
+    const z = CAMERA_Z + Math.sin(t * 0.11) * 0.6;
+    const q = z - travel; // where along the canyon the camera currently is
+    const drift = (Math.sin(t * 0.23) * 0.25 + Math.sin(t * 0.37 + 1.7) * 0.1) * (1 - dive * 0.4);
+    const y = lerp(CRUISE_HEIGHT, CANYON_HEIGHT, dive) + Math.sin(t * 0.31) * 0.15;
+    camera.position.set(canyonCenter(q) + drift, y, z);
+
+    // Aim down the canyon ahead: tilted down over the rim, nearly level inside
+    const tz = z - LOOK_AHEAD;
+    camera.lookAt(
+      canyonCenter(tz - travel) + Math.sin(t * 0.17) * 0.4,
+      lerp(1.6, 0.9, dive) + Math.sin(t * 0.13) * 0.2,
+      tz
+    );
+
+    // Bank into the bends, plus a slight lazy roll
+    camera.rotateZ(-canyonBend(q - 3) * 2.5 + Math.sin(t * 0.19) * 0.02);
   });
 
-  // depthWrite lets nearer rock hide what's behind it, so the crags read as
-  // solid faces instead of see-through clouds. frustumCulled is off because
-  // the shaders move every point away from where three.js thinks it is.
   return (
-    <group ref={groupRef} position={[0, -2.6, 0]}>
-      <points frustumCulled={false}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[terrain.positions, 3]} />
-          <bufferAttribute attach="attributes-aRand" args={[terrain.rands, 1]} />
-        </bufferGeometry>
-        <shaderMaterial
-          vertexShader={terrainVertexShader}
-          fragmentShader={fragmentShader}
-          uniforms={uniforms}
-          transparent
-          depthWrite
-        />
-      </points>
-      <points frustumCulled={false}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[crags.positions, 3]} />
-          <bufferAttribute attach="attributes-aSeed" args={[crags.seeds, 4]} />
-        </bufferGeometry>
-        <shaderMaterial
-          vertexShader={cragVertexShader}
-          fragmentShader={fragmentShader}
-          uniforms={uniforms}
-          transparent
-          depthWrite
-        />
-      </points>
-    </group>
+    <>
+      <ScanPoints vertexShader={terrainVertexShader} attributes={terrain} uniforms={uniforms} />
+      <ScanPoints vertexShader={wallVertexShader} attributes={walls} uniforms={uniforms} />
+      <ScanPoints vertexShader={cragVertexShader} attributes={crags} uniforms={uniforms} />
+    </>
   );
 }
 
 export default function MoonTripBackground() {
+  // Reduced motion: draw a single still frame instead of animating
+  const reduceMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
   return (
     <div
+      aria-hidden="true"
       style={{
         position: 'fixed',
         inset: 0,
@@ -436,7 +558,11 @@ export default function MoonTripBackground() {
         pointerEvents: 'none',
       }}
     >
-      <Canvas camera={{ position: [0, 1.6, 7.5], fov: 55 }} dpr={[1, 2]}>
+      <Canvas
+        camera={{ position: [0, CRUISE_HEIGHT, CAMERA_Z], fov: 58, near: 0.05, far: 60 }}
+        dpr={[1, 2]}
+        frameloop={reduceMotion ? 'demand' : 'always'}
+      >
         <CanyonScan />
       </Canvas>
     </div>

@@ -7,11 +7,13 @@ import Work from "./components/Work.jsx";
 import Leadership from "./components/Leadership.jsx";
 import Footer from "./components/Footer.jsx";
 import UnderConstruction from "./components/UnderConstruction.jsx";
-import Waves from "./components/Waves.jsx";
+// import Waves from "./components/Waves.jsx"; // swapped for the canyon scan below
+import MoonTripBackground from "./components/MoonTripBackground.jsx";
 import MoonTrip from "./pages/MoonTrip.jsx";
 
 const App = () => (
   <BrowserRouter>
+    {/* Waves background - replaced by the canyon scan (MoonTripBackground) below.
     <div className="site-background" aria-hidden="true">
       <Waves
         lineColor="#20604f"
@@ -34,6 +36,8 @@ const App = () => (
         scrollFactor={1}
       />
     </div>
+    */}
+    <MoonTripBackground />
     <ScrollToTop />
     <Navigation />
     <main>
