@@ -30,6 +30,7 @@ const App = () => (
         clickRipple={false}
         intro={false}
         opacity={0.7}
+        scrollFactor={1}
       />
     </div>
     <ScrollToTop />

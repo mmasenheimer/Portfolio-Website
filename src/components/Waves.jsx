@@ -30,6 +30,9 @@ uniform float uLimit;
 uniform float uReach;
 uniform float uReveal;
 uniform float uBand;
+uniform vec2 uWorld;
+uniform float uFrac;
+uniform int uLineShift;
 out float vAcross;
 out float vAlong;
 out float vEnergy;
@@ -108,9 +111,13 @@ vec2 field(vec2 point, out mat2 slope) {
   return value * scale;
 }
 
+// The pattern lives in an endless "world" plane. uWorld is the scroll offset
+// (snapped to whole line spacings across the lines) used to sample the noise;
+// uFrac is the leftover sub-spacing shift applied to the drawn position.
 vec2 wave(vec2 rest) {
-  float turn = perlin(rest * uFrequency + uDrift) * 12.0 * uTwist;
-  vec2 local = rest + vec2(cos(turn), sin(turn) * 0.5) * uAmplitude;
+  vec2 world = rest + uWorld;
+  float turn = perlin(world * uFrequency + uDrift) * 12.0 * uTwist;
+  vec2 local = rest + vec2(uFrac, 0.0) + vec2(cos(turn), sin(turn) * 0.5) * uAmplitude;
   return uView * 0.5 + vec2(local.x * uAxis.x - local.y * uAxis.y, local.x * uAxis.y + local.y * uAxis.x);
 }
 
@@ -130,10 +137,10 @@ void main() {
   vec2 normal = vec2(-tangent.y, tangent.x) / span;
   vec2 corner = point + normal * side * uReach / uRatio;
   vAcross = side * uReach;
-  vAlong = v;
+  vAlong = v + uWorld.y;
   vEnergy = energy;
   vShow = clamp((uReveal - abs(u)) / uBand, 0.0, 1.0);
-  uint line = uint(gl_InstanceID) * 747796405u + uSeed * 2891336453u + 1u;
+  uint line = uint(gl_InstanceID + uLineShift) * 747796405u + uSeed * 2891336453u + 1u;
   line = ((line >> ((line >> 28u) + 4u)) ^ line) * 277803737u;
   vPhase = float((line >> 22u) ^ line) / 4294967295.0;
   vec2 clip = corner / uView * 2.0 - 1.0;
@@ -246,6 +253,7 @@ const Waves = ({
   opacity = 1,
   lightMode = false,
   paused = false,
+  scrollFactor = 0,
   dpr,
   className = '',
   style
@@ -276,6 +284,7 @@ const Waves = ({
     opacity: clamp(opacity, 0, 1),
     lightMode,
     paused,
+    scrollFactor,
     dpr
   };
   const settingsRef = useRef(settings);
@@ -522,6 +531,16 @@ const Waves = ({
       const accent = s.accentColor ? parse(s.accentColor) : tone;
       const flowTime = state.flow + s.variation * 37.1;
 
+      // Scrolling the page by S px moves the pattern up by S * scrollFactor.
+      // Convert that screen offset into the rotated pattern space, then split
+      // the cross-line part into whole line spacings (shifts which lines are
+      // drawn) plus a remainder (shifts where they are drawn).
+      const scrolled = (window.scrollY || 0) * s.scrollFactor;
+      const offsetU = scrolled * sin;
+      const offsetV = scrolled * cos;
+      const lineShift = Math.round(offsetU / s.spacing);
+      const snappedU = lineShift * s.spacing;
+
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -549,6 +568,9 @@ const Waves = ({
       gl.uniform1f(u.uReach, reach);
       gl.uniform1f(u.uReveal, reveal);
       gl.uniform1f(u.uBand, Math.max(1, reachU * 0.3));
+      gl.uniform2f(u.uWorld, snappedU, offsetV);
+      gl.uniform1f(u.uFrac, snappedU - offsetU);
+      gl.uniform1i(u.uLineShift, lineShift);
       gl.uniform1f(u.uHalf, halfWidth);
       gl.uniform1f(u.uThin, Math.min(1, width));
       gl.uniform1i(u.uStyle, s.lineStyle);
@@ -650,6 +672,14 @@ const Waves = ({
       wake();
     };
 
+    // Redraw on scroll so the pattern tracks the page even when the
+    // animation loop is idle (e.g. reduced motion or paused).
+    const onScroll = () => {
+      if (!settingsRef.current.scrollFactor) return;
+      if (!raf) render();
+      wake();
+    };
+
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
     const intersection = new IntersectionObserver(entries => {
@@ -666,6 +696,7 @@ const Waves = ({
     window.addEventListener('pointercancel', onPointerUp, { passive: true });
     document.documentElement.addEventListener('pointerleave', onPointerLeave);
     document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('scroll', onScroll, { passive: true });
     resize();
 
     let lastDpr = settingsRef.current.dpr;
@@ -691,6 +722,7 @@ const Waves = ({
       window.removeEventListener('pointercancel', onPointerUp);
       document.documentElement.removeEventListener('pointerleave', onPointerLeave);
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('scroll', onScroll);
       gl.deleteProgram(program.program);
       gl.deleteVertexArray(vao);
       gl.deleteTexture(texture);
