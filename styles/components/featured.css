@@ -99,6 +99,16 @@
   min-width: 0;
 }
 
+/* The text sits in a pane: drop the outer margins of its first and last
+   blocks so the pane's padding is even all round */
+.featured__content > :first-child {
+  margin-top: 0;
+}
+
+.featured__content > :last-child {
+  margin-bottom: 0;
+}
+
 .featured__img-container {
   margin-top: 1rem;
   display: grid;
@@ -177,8 +187,9 @@
   .research-timeline__label {
     font-size: var(--size-lg);
   }
+  /* images on the left, text on the right */
   .featured__body {
-    flex-direction: row;
+    flex-direction: row-reverse;
     align-items: flex-start;
     gap: 2.5rem;
   }
@@ -209,7 +220,6 @@
     font-size: var(--size-xl);
   }
   .featured__img-container {
-    margin-top: 2rem;
     grid-gap: 1.5rem;
   }
 }

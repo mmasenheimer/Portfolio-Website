@@ -745,7 +745,7 @@ const CRUISE_HEIGHT = 4.9; // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, s
 const CANYON_HEIGHT = 1.25; // down between the walls, clear of the boulders
 // Overall pace of the flight: 1 = full speed, lower = slower everything
 // (forward travel, drifting, banking and the dives into the canyon)
-const FLIGHT_PACE = 0.45;
+const FLIGHT_PACE = 0.4;
 // One cruise -> dive into the canyon -> climb out cycle, in flight time
 // (real seconds = DIVE_PERIOD / FLIGHT_PACE, so about 2.7 minutes)
 const DIVE_PERIOD = 56;

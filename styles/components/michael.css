@@ -6,7 +6,7 @@
   align-items: center;
   gap: 1rem;
   margin-top: 2rem;
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
 }
 
 .michael__img {
@@ -84,7 +84,7 @@
 @media (min-width: 1024px) {
   .michael {
     margin-top: 3rem;
-    padding-bottom: 3rem;
+    padding-bottom: 1.5rem;
   }
 
   .michael__img {
@@ -114,7 +114,7 @@
   .michael {
     gap: 2rem;
     margin-top: 4rem;
-    padding-bottom: 4rem;
+    padding-bottom: 2rem;
   }
   .michael__img {
     width: 10rem;

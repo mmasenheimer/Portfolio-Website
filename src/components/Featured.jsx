@@ -36,7 +36,7 @@ const Featured = () => (
     </PillButton>
 
     <div className="featured__body">
-      <div className="featured__content">
+      <div className="featured__content text-pane">
         <p className="featured__description">
           The Large Hadron Collider (LHC) is the world's largest particle
           accelerator, operated by a nuclear physics lab near Geneva called
