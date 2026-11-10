@@ -735,7 +735,12 @@ const CAMERA_Z = 5;
 const LOOK_AHEAD = 7;       // how far down the canyon the camera aims
 const CRUISE_HEIGHT = 4.9;  // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, spires higher)
 const CANYON_HEIGHT = 1.25; // down between the walls, clear of the boulders
-const DIVE_PERIOD = 70;     // seconds per cruise -> dive into the canyon -> climb out
+// Overall pace of the flight: 1 = full speed, lower = slower everything
+// (forward travel, drifting, banking and the dives into the canyon)
+const FLIGHT_PACE = 0.35;
+// One cruise -> dive into the canyon -> climb out cycle, in flight time
+// (real seconds = DIVE_PERIOD / FLIGHT_PACE, so about 2.7 minutes)
+const DIVE_PERIOD = 56;
 // Kept outside the component so re-renders don't hand the canvas new objects
 const CAMERA = { position: [0, CRUISE_HEIGHT, CAMERA_Z], fov: 58, near: 0.05, far: 60 };
 const DPR = [1, 2];
@@ -850,7 +855,7 @@ function CanyonScan({ onTooSlow }) {
   }, []);
 
   useFrame(({ clock, camera }, delta) => {
-    const t = clock.getElapsedTime();
+    const t = clock.getElapsedTime() * FLIGHT_PACE; // flight time
     uniforms.uTime.value = t;
     const travel = t * TRAVEL;
 
