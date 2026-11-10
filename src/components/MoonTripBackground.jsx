@@ -182,38 +182,40 @@ const common = /* glsl */ `
   }
 
   // ---- crags ---------------------------------------------------------
-  // Rock towers spaced along the canyon, alternating sides, standing at
-  // the rim. Most are broad ragged blocks; about a third are thin, tall,
-  // twisted spires.
+  // Landmarks spaced along the canyon, alternating sides, up on the rim.
+  // Most are broad, ragged rock blocks; the rest are big lone trees.
   struct Crag {
     vec2 center;  // terrain space
     float radius;
     float top;
     float side;   // -1 = left of the canyon, +1 = right
     float seed;
-    float spire;  // 1 = twisted spire, 0 = block
+    float tree;   // 1 = a big lone tree stands here instead of rock
     float taper;  // how much it narrows toward the top
-    float twist;  // how far a spire's ribs turn from base to top
     vec2 lean;    // how far the top is shifted from the base (away from the canyon)
   };
 
   Crag cragAt(float k) {
     vec2 h = hash01(vec2(k, 17.0));
     vec2 h2 = hash01(vec2(k, 29.0));
+    vec2 h3 = hash01(vec2(k, 41.0));
     Crag c;
     c.seed = k;
     c.side = mod(k, 2.0) < 0.5 ? -1.0 : 1.0;
-    c.spire = step(h2.x, 0.35);
-    c.radius = mix(1.5 + h.y * 0.6, 0.5 + h.y * 0.3, c.spire);
-    c.top = mix(3.6 + h.x * 0.6, 5.0 + h.x * 1.3, c.spire);
-    c.taper = mix(0.05 + h2.y * 0.25, 0.35 + h2.y * 0.2, c.spire);
-    c.twist = c.spire * (1.5 + h2.y * 2.0) * (h.x < 0.5 ? -1.0 : 1.0);
+    // ~28% are trees, well mixed along the canyon (the first one ahead at
+    // the start is a tree)
+    c.tree = 1.0 - step(0.3, hash01(vec2(k * 8.18 + 2.0, k * 12.89 + 61.0)).y);
+    c.radius = 1.5 + h.y * 0.6;
+    c.top = 3.6 + h.x * 0.6;
+    c.taper = 0.05 + h2.y * 0.25;
     // lean outward (never over the canyon, so the camera's path stays clear)
-    vec2 h3 = hash01(vec2(k, 41.0));
-    c.lean = vec2(c.side * h3.x * mix(0.5, 0.9, c.spire), (h3.y - 0.5) * mix(0.6, 1.2, c.spire));
+    c.lean = vec2(c.side * h3.x * 0.5, (h3.y - 0.5) * 0.6);
     float z = k * CRAG_PERIOD + (h.x - 0.5) * 2.0;
-    // set back enough that the camera's path down the canyon stays clear
-    c.center = vec2(canyonCenter(z) + c.side * (canyonHalfWidth(z) + c.radius), z);
+    // Set back from the canyon edge far enough that even the most ragged
+    // outline can't reach into the canyon, where the camera flies. Trees
+    // stand a little back from the edge so their branches stay clear too.
+    float setback = mix(c.radius * 1.7, 1.8, c.tree);
+    c.center = vec2(canyonCenter(z) + c.side * (canyonHalfWidth(z) + setback), z);
     return c;
   }
 
@@ -225,36 +227,33 @@ const common = /* glsl */ `
   // height fraction y01 (0 = base, 1 = top). Layered noise keeps the outline
   // ragged, and it shifts with height so the walls bulge and overhang.
   float cragOutline(Crag c, float theta, float y01) {
-    float a = theta + c.twist * y01;
-    vec2 dir = vec2(cos(a), sin(a));
+    vec2 dir = vec2(cos(theta), sin(theta));
     float r = 1.0
       + gnoise(dir * 1.3 + c.seed * 7.7) * 0.45
       + gnoise(dir * 3.1 + vec2(c.seed * 3.3, y01 * 2.6)) * 0.3
       + gnoise(dir * 7.0 + vec2(c.seed * 1.7, y01 * 7.0)) * 0.12;
-    r += c.spire * sin(a * 4.0 + c.seed) * 0.18;         // fluted ribs on spires
     r *= 1.0 - c.taper * y01;
     return c.radius * max(r, 0.3);
   }
 
-  // Crag top: blocks are tilted slabs, highest along the canyon edge;
-  // spires come to a point. Both get a broken, jagged crest.
+  // Crag top: a tilted slab, highest along the canyon edge, with a broken,
+  // jagged crest
   float cragTop(Crag c, vec2 q) {
     vec2 v = q - c.center - c.lean;
-    float h = c.top - v.x * c.side * 0.35 * (1.0 - c.spire) + v.y * 0.1;
-    h += c.spire * (1.0 - length(v) / c.radius) * 0.6;
+    float h = c.top - v.x * c.side * 0.35 + v.y * 0.1;
     h += ridged(q * 1.3 + c.seed) * 0.5;
     h += gnoise(q * 6.0) * 0.05;
     return h;
   }
 
-  // Full terrain height (crags included) at a world ground position
+  // Full terrain height (rock crags included) at a world ground position
   float heightAt(vec2 xz) {
     vec2 q = vec2(xz.x, xz.y - uTime * TRAVEL);
     float h = baseHeight(q);
     Crag c = nearestCrag(q.y);
     vec2 v = q - c.center - c.lean; // the top sits over the leaned-over centre
     float r = length(v);
-    if (r < c.radius * 2.0) {
+    if (c.tree < 0.5 && r < c.radius * 2.0) {
       float edge = cragOutline(c, atan(v.y, v.x), 1.0);
       float inside = 1.0 - smoothstep(edge - 0.04, edge + 0.04, r); // near-vertical wall
       h = mix(h, max(h, cragTop(c, q)), inside);
@@ -270,6 +269,99 @@ const common = /* glsl */ `
     float key = max(dot(n, normalize(vec3(-0.6, 0.45, 0.65))), 0.0);
     float fill = max(dot(n, normalize(vec3(0.7, 0.35, 0.3))), 0.0);
     return clamp(key + fill * 0.25, 0.0, 1.0);
+  }
+
+  // ---- trees ---------------------------------------------------------
+  // Two unit vectors perpendicular to d (and to each other)
+  void basis(vec3 d, out vec3 u, out vec3 v) {
+    vec3 ref = abs(d.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    u = normalize(cross(d, ref));
+    v = cross(d, u);
+  }
+
+  // A crooked limb: from s along dir for len, sagging by droop and
+  // wandering a little; the point at fraction t of the way along
+  vec3 limbPoint(vec3 s, vec3 dir, float len, float droop, float seed, float t) {
+    vec3 u;
+    vec3 v;
+    basis(dir, u, v);
+    vec3 p = s + dir * len * t;
+    p.y -= droop * len * t * t;
+    p += (u * gnoise(vec2(t * 3.0, seed)) + v * gnoise(vec2(t * 3.0, seed + 5.0))) * len * 0.15;
+    return p;
+  }
+
+  // A point on a crooked tree growing from root: a leaning trunk, drooping
+  // branches, 2-3 twigs per branch and loose leaf clumps at the twig tips.
+  // tseed picks its shape, size scales it and extra adds branches. part
+  // (0-1) picks trunk / branch / twig / leaves, t is how far along that
+  // limb, and pick holds the rest: x - which branch, y - which twig,
+  // z - angle around the limb, w - leaf scatter. n gets the surface normal.
+  vec3 treePoint(vec3 root, float tseed, float size, float extra, float part, float t, vec4 pick, out vec3 n) {
+    vec2 h1 = hash01(vec2(tseed, 41.0));
+    vec2 h2 = hash01(vec2(tseed, 87.0));
+    vec2 h3 = hash01(vec2(tseed, 133.0));
+    float trunkLen = 0.9 * size;
+    vec3 trunkDir = normalize(vec3((h2.y - 0.5) * 0.5, 1.0, (h3.x - 0.5) * 0.5));
+    float branches = 3.0 + floor(h3.y * 3.0) + extra;
+    float spin = h1.x * TAU;
+
+    // Pick the limb this point sits on: the trunk, a branch, or a twig
+    vec3 s = root;
+    vec3 dir = trunkDir;
+    float len = trunkLen;
+    float droop = 0.0;
+    float seed = tseed;
+    float thick = 0.045 * size;
+
+    if (part >= 0.25) {
+      float i = floor(pick.x * branches);
+      vec2 bh = hash01(vec2(tseed, i + 1.0));
+      float along = 0.35 + (i + 0.5 + (bh.x - 0.5) * 0.6) / branches * 0.6;
+      float az = spin + (i + bh.y * 0.6) / branches * TAU;
+      float el = 0.3 + bh.x * 0.7;
+      s = limbPoint(root, trunkDir, trunkLen, 0.0, tseed, along);
+      dir = vec3(cos(el) * cos(az), sin(el), cos(el) * sin(az));
+      len = trunkLen * (0.45 + bh.y * 0.35) * (1.0 - 0.35 * (along - 0.35));
+      droop = 0.1 + bh.y * 0.35;
+      seed = tseed + i * 3.7;
+      thick = 0.022 * size;
+
+      if (part >= 0.65) {
+        float twigs = 2.0 + floor(bh.x * 2.0);
+        float j = floor(pick.y * twigs);
+        vec2 th = hash01(vec2(seed, j + 20.0));
+        float ut = 0.35 + (j + 0.5) / twigs * 0.6;
+        vec3 u;
+        vec3 v;
+        basis(dir, u, v);
+        s = limbPoint(s, dir, len, droop, seed, ut);
+        dir = normalize(dir + (u * (th.x - 0.5) + v * (th.y - 0.5)) * 1.6 + vec3(0.0, 0.35, 0.0));
+        len *= 0.35 + th.y * 0.3;
+        droop = 0.15;
+        seed += j * 5.3 + 11.0;
+        thick = 0.011 * size;
+      }
+    }
+
+    if (part >= 0.9) {
+      // Leaves: a loose clump around the twig's tip
+      vec3 tip = limbPoint(s, dir, len, droop, seed, 1.0);
+      float ct = pick.w * 2.0 - 1.0;
+      float phi = pick.z * TAU;
+      float st = sqrt(max(0.0, 1.0 - ct * ct));
+      n = vec3(st * cos(phi), ct, st * sin(phi));
+      return tip + n * (0.08 + 0.1 * size) * pow(t, 0.33);
+    }
+    // On the limb's surface, thinning toward its end
+    vec3 axisP = limbPoint(s, dir, len, droop, seed, t);
+    vec3 axisD = normalize(limbPoint(s, dir, len, droop, seed, t + 0.03) - axisP);
+    vec3 u;
+    vec3 v;
+    basis(axisD, u, v);
+    float ang = pick.z * TAU;
+    n = u * cos(ang) + v * sin(ang);
+    return axisP + n * thick * (1.0 - 0.6 * t);
   }
 
   void emit(vec3 pos) {
@@ -314,7 +406,7 @@ const terrainVertexShader =
     vec2 vt = q - c.center - c.lean; // from its (leaned-over) top centre
     float rb = length(vb);
     float rt = length(vt);
-    if (min(rb, rt) < c.radius * 2.0) {
+    if (c.tree < 0.5 && min(rb, rt) < c.radius * 2.0) {
       float baseEdge = cragOutline(c, atan(vb.y, vb.x), 0.0);
       float topEdge = cragOutline(c, atan(vt.y, vt.x), 1.0);
       // Skip points buried in the rock under a crag's sloping wall
@@ -336,7 +428,8 @@ const terrainVertexShader =
 `;
 
 // Extra points packed onto the crags' walls and tops so they read as dense,
-// solid rock. Their positions come entirely from aSeed:
+// solid rock (or, where a crag slot holds a tree, onto that big tree).
+// Their positions come entirely from aSeed:
 //   x - where the point rides in the looping band (picks which crag)
 //   y - angle around the crag
 //   z - height up the wall / distance in from the edge on the top
@@ -367,15 +460,38 @@ const cragVertexShader =
 
     vec3 p; // terrain space: (x, height, distance along the canyon)
     vec3 n;
+
+    if (c.tree > 0.5) {
+      // This slot holds a big lone tree instead of rock: spend the crag's
+      // points on it, so it comes out dense and detailed
+      vec3 root = vec3(c.center.x, baseHeight(c.center) - 0.05, c.center.y);
+      vec4 pick = vec4(
+        aSeed.y,
+        fract(aSeed.y * 71.3 + aSeed.z * 13.1),
+        fract(aSeed.z * 53.7 + aSeed.w * 17.9),
+        fract(aSeed.y * 29.3 + aSeed.w * 91.1)
+      );
+      float size = 2.0 + hash01(vec2(c.seed, 7.0)).x * 0.6;
+      p = treePoint(root, c.seed * 3.1 + 500.0, size, 2.0, aSeed.w, aSeed.z, pick, n);
+      vLight = lightAmount(n);
+      vHeight = p.y;
+      vStrata = 0.0;
+      vRand = fract(pick.z * 37.1 + aSeed.z * 11.3);
+      vShade = 0.9;
+      vVisible = 1.0;
+      emit(vec3(p.x, p.y, p.z + travel));
+      return;
+    }
+
     float visible = 1.0;
     float shade = 1.0;
 
     if (aSeed.w < WALL_SHARE) {
-      // ---- wall. Blocks: bunch points onto the side facing the canyon and
-      // the camera (the big visible face). Spires: all the way round.
+      // ---- wall: bunch points onto the side facing the canyon and the
+      // camera (the big visible face) and thin them out round the back
       float facing = atan(0.8, -c.side);
       float s = aSeed.y * 2.0 - 1.0;
-      float theta = mix(facing + 3.14159265 * s * (0.55 + 0.45 * s * s), aSeed.y * TAU, c.spire);
+      float theta = facing + 3.14159265 * s * (0.55 + 0.45 * s * s);
       vec2 dir = vec2(cos(theta), sin(theta));
 
       float base = baseHeight(c.center + dir * cragOutline(c, theta, 0.0));
@@ -473,11 +589,11 @@ const wallVertexShader =
     float d = canyonDistance(q);
 
     // Hide points where the solve missed (the wall folds back on itself)
-    // or where a crag stands in front of the wall
+    // or where a rock crag stands in front of the wall
     float visible = step(abs(d - wallD), 0.08);
     Crag c = nearestCrag(qz);
     vec2 cv = q - c.center;
-    if (length(cv) < cragOutline(c, atan(cv.y, cv.x), 0.0) + 0.1) visible = 0.0;
+    if (c.tree < 0.5 && length(cv) < cragOutline(c, atan(cv.y, cv.x), 0.0) + 0.1) visible = 0.0;
 
     // Which way the wall faces (into the canyon)
     float e = 0.03;
@@ -554,25 +670,6 @@ const treeVertexShader =
   const float TREE_COLS = 5.0;  // ...in 5 columns across x from -10 to 10
   const float X_START = -10.0;
 
-  // Two unit vectors perpendicular to d (and to each other)
-  void basis(vec3 d, out vec3 u, out vec3 v) {
-    vec3 ref = abs(d.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-    u = normalize(cross(d, ref));
-    v = cross(d, u);
-  }
-
-  // A crooked limb: from s along dir for len, sagging by droop and
-  // wandering a little; the point at fraction t of the way along
-  vec3 limbPoint(vec3 s, vec3 dir, float len, float droop, float seed, float t) {
-    vec3 u;
-    vec3 v;
-    basis(dir, u, v);
-    vec3 p = s + dir * len * t;
-    p.y -= droop * len * t * t;
-    p += (u * gnoise(vec2(t * 3.0, seed)) + v * gnoise(vec2(t * 3.0, seed + 5.0))) * len * 0.15;
-    return p;
-  }
-
   void main() {
     float travel = uTime * TRAVEL;
     float bandZ = BAND_END - BAND_LENGTH + mod(aSeed.x * BAND_LENGTH + travel, BAND_LENGTH);
@@ -580,91 +677,24 @@ const treeVertexShader =
     float col = floor(aSeed.y * TREE_COLS);
     vec2 h1 = hash01(vec2(col, row) + 41.0);
     vec2 h2 = hash01(vec2(col, row) + 87.0);
-    vec2 h3 = hash01(vec2(col, row) + 133.0);
-    float tseed = col * 13.0 + row * 7.0;
 
     // Root, jittered inside its patch (terrain space)
     vec2 spot = vec2(X_START + (col + 0.15 + h1.x * 0.7) * TREE_CELL, (row + 0.15 + h1.y * 0.7) * TREE_CELL);
 
-    // Only grow where there's footing: on the rim back from the edge, or on
-    // the canyon floor by the walls where it's wide - never in the camera's
-    // flight path, on the walls themselves, or inside a crag
+    // Only grow on the rim, back from the canyon's edge (so branches never
+    // reach the camera's flight path), and not inside a rock crag or crowding
+    // one of the big lone trees
     float d = canyonDistance(spot);
     float hw = canyonHalfWidth(spot.y);
-    float visible = (d > 1.8 && d < hw - 0.15) || d > hw + 0.9 ? 1.0 : 0.0;
+    float visible = d > hw + 0.9 ? 1.0 : 0.0;
     Crag c = nearestCrag(spot.y);
     vec2 cv = spot - c.center;
-    if (length(cv) < cragOutline(c, atan(cv.y, cv.x), 0.0) + 0.4) visible = 0.0;
+    float keepClear = c.tree > 0.5 ? 2.2 : cragOutline(c, atan(cv.y, cv.x), 0.0) + 0.4;
+    if (length(cv) < keepClear) visible = 0.0;
     vec3 root = vec3(spot.x, baseHeight(spot) - 0.05, spot.y);
 
-    // Overall shape: size, lean, number of branches, which way they start
-    float size = 0.6 + h2.x * 0.9;
-    float trunkLen = 0.9 * size;
-    vec3 trunkDir = normalize(vec3((h2.y - 0.5) * 0.5, 1.0, (h3.x - 0.5) * 0.5));
-    float branches = 3.0 + floor(h3.y * 3.0);
-    float spin = h1.x * TAU;
-
-    // Pick the limb this point sits on: the trunk, a branch, or a twig
-    float part = aSeed.z;
-    vec3 s = root;
-    vec3 dir = trunkDir;
-    float len = trunkLen;
-    float droop = 0.0;
-    float seed = tseed;
-    float thick = 0.045 * size;
-
-    if (part >= 0.25) {
-      float i = floor(aSeed2.x * branches);
-      vec2 bh = hash01(vec2(tseed, i + 1.0));
-      float along = 0.35 + (i + 0.5 + (bh.x - 0.5) * 0.6) / branches * 0.6;
-      float az = spin + (i + bh.y * 0.6) / branches * TAU;
-      float el = 0.3 + bh.x * 0.7;
-      s = limbPoint(root, trunkDir, trunkLen, 0.0, tseed, along);
-      dir = vec3(cos(el) * cos(az), sin(el), cos(el) * sin(az));
-      len = trunkLen * (0.45 + bh.y * 0.35) * (1.0 - 0.35 * (along - 0.35));
-      droop = 0.1 + bh.y * 0.35;
-      seed = tseed + i * 3.7;
-      thick = 0.022 * size;
-
-      if (part >= 0.65) {
-        float twigs = 2.0 + floor(bh.x * 2.0);
-        float j = floor(aSeed2.y * twigs);
-        vec2 th = hash01(vec2(seed, j + 20.0));
-        float ut = 0.35 + (j + 0.5) / twigs * 0.6;
-        vec3 u;
-        vec3 v;
-        basis(dir, u, v);
-        s = limbPoint(s, dir, len, droop, seed, ut);
-        dir = normalize(dir + (u * (th.x - 0.5) + v * (th.y - 0.5)) * 1.6 + vec3(0.0, 0.35, 0.0));
-        len *= 0.35 + th.y * 0.3;
-        droop = 0.15;
-        seed += j * 5.3 + 11.0;
-        thick = 0.011 * size;
-      }
-    }
-
-    vec3 p;
     vec3 n;
-    float t = aSeed.w;
-    if (part >= 0.9) {
-      // Leaves: a loose clump around the twig's tip
-      vec3 tip = limbPoint(s, dir, len, droop, seed, 1.0);
-      float ct = aSeed2.w * 2.0 - 1.0;
-      float phi = aSeed2.z * TAU;
-      float st = sqrt(max(0.0, 1.0 - ct * ct));
-      n = vec3(st * cos(phi), ct, st * sin(phi));
-      p = tip + n * (0.08 + 0.1 * size) * pow(t, 0.33);
-    } else {
-      // On the limb's surface, thinning toward its end
-      vec3 axisP = limbPoint(s, dir, len, droop, seed, t);
-      vec3 axisD = normalize(limbPoint(s, dir, len, droop, seed, t + 0.03) - axisP);
-      vec3 u;
-      vec3 v;
-      basis(axisD, u, v);
-      float ang = aSeed2.z * TAU;
-      n = u * cos(ang) + v * sin(ang);
-      p = axisP + n * thick * (1.0 - 0.6 * t);
-    }
+    vec3 p = treePoint(root, col * 13.0 + row * 7.0, 0.6 + h2.x * 0.9, 0.0, aSeed.z, aSeed.w, aSeed2, n);
 
     vLight = lightAmount(n);
     vHeight = p.y;
@@ -741,13 +771,15 @@ const Z_MAX = 6;
 // ---- camera flight ---------------------------------------------------------
 const CAMERA_Z = 5;
 const LOOK_AHEAD = 7; // how far down the canyon the camera aims
-const CRUISE_HEIGHT = 4.9; // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4, spires higher)
+const CRUISE_HEIGHT = 4.9; // above the rim (rim ~2.5-4.5, crag tops ~4.3-5.4)
 const CANYON_HEIGHT = 1.25; // down between the walls, clear of the boulders
+// How close the camera may drift toward either canyon wall
+const WALL_CLEARANCE = 0.6;
 // Overall pace of the flight: 1 = full speed, lower = slower everything
 // (forward travel, drifting, banking and the dives into the canyon)
 const FLIGHT_PACE = 0.4;
 // One cruise -> dive into the canyon -> climb out cycle, in flight time
-// (real seconds = DIVE_PERIOD / FLIGHT_PACE, so about 2.7 minutes)
+// (real seconds = DIVE_PERIOD / FLIGHT_PACE, so about 2.3 minutes)
 const DIVE_PERIOD = 56;
 // Kept outside the component so re-renders don't hand the canvas new objects
 const CAMERA = {
@@ -769,6 +801,66 @@ const smoothstep = (a, b, x) => {
   return t * t * (3 - 2 * t);
 };
 const randoms = (n) => Float32Array.from({ length: n }, () => Math.random());
+
+// ---- canyon walls, for steering the camera ---------------------------------
+// The same noise the shader uses (hash2, gnoise, canyonHalfWidth and
+// canyonDistance), so the camera can see where the walls actually are -
+// they wander well off the centreline - and fly down the middle of the gap.
+const fract = (x) => x - Math.floor(x);
+const hash2 = (px, py) => {
+  let x = fract(px * 0.1031);
+  let y = fract(py * 0.103);
+  let z = fract(px * 0.0973);
+  const d = x * (y + 33.33) + y * (z + 33.33) + z * (x + 33.33);
+  x += d;
+  y += d;
+  z += d;
+  return [fract((x + y) * z) * 2 - 1, fract((x + z) * y) * 2 - 1];
+};
+const gnoise = (px, py) => {
+  const ix = Math.floor(px);
+  const iy = Math.floor(py);
+  const fx = px - ix;
+  const fy = py - iy;
+  const corner = (cx, cy) => {
+    const [gx, gy] = hash2(ix + cx, iy + cy);
+    return gx * (fx - cx) + gy * (fy - cy);
+  };
+  const ux = fx * fx * (3 - 2 * fx);
+  const uy = fy * fy * (3 - 2 * fy);
+  return lerp(lerp(corner(0, 0), corner(1, 0), ux), lerp(corner(0, 1), corner(1, 1), ux), uy);
+};
+const canyonHalfWidth = (z) => 1.6 + gnoise(z * 0.15, 3.7) * 0.6;
+const canyonDistance = (x, z) =>
+  Math.abs(x - canyonCenter(z)) + gnoise(x * 0.9, z * 0.9) * 0.6 + gnoise(x * 2.3, z * 2.3) * 0.25;
+
+// The open gap between the walls at a point along the canyon: its middle
+// and half its width. A wall starts where its steep band begins, a little
+// in front of the rock face itself.
+const canyonGap = (z) => {
+  const center = canyonCenter(z);
+  const halfWidth = canyonHalfWidth(z);
+  const wallAt = (side) => {
+    let open = 0;
+    for (let s = 0.05; s <= 3.5; s += 0.05) {
+      if (canyonDistance(center + side * s, z) >= halfWidth) {
+        // narrow it down between the last open step and this one
+        let hit = s;
+        for (let i = 0; i < 6; i++) {
+          const mid = (open + hit) / 2;
+          if (canyonDistance(center + side * mid, z) >= halfWidth) hit = mid;
+          else open = mid;
+        }
+        return open;
+      }
+      open = s;
+    }
+    return 3.5;
+  };
+  const left = wallAt(-1);
+  const right = wallAt(1);
+  return { mid: center + (right - left) / 2, half: (left + right) / 2 };
+};
 
 function ScanPoints({ pointsRef, vertexShader, attributes, uniforms }) {
   // depthWrite lets nearer rock hide what's behind it, so surfaces read as
@@ -811,6 +903,8 @@ function CanyonScan({ onTooSlow }) {
     lastFps: 0,
     locked: false,
   });
+  // Camera's eased sideways position and aim (see useFrame)
+  const flight = useRef({ x: null, aimX: null, t: 0 });
 
   const { terrain, crags, walls, trees, counts, uniforms } = useMemo(() => {
     // Phones start with fewer points: these shaders are heavy and run every frame
@@ -905,24 +999,37 @@ function CanyonScan({ onTooSlow }) {
     const cycle = 0.5 - 0.5 * Math.cos((t / DIVE_PERIOD) * Math.PI * 2);
     const dive = smoothstep(0.35, 0.85, cycle);
 
-    // Follow the canyon's centreline, drifting side to side (less so between
-    // the walls), easing forward and back, and bobbing gently
+    // Fly down the middle of the gap between the canyon walls (not just the
+    // centreline - the walls wander), drifting side to side only as far as
+    // the gap allows, easing forward and back, and bobbing gently
     const z = CAMERA_Z + Math.sin(t * 0.11) * 0.6;
     const q = z - travel; // where along the canyon the camera currently is
+    const gap = canyonGap(q);
+    const room = Math.max(0, gap.half - WALL_CLEARANCE);
     const drift =
       (Math.sin(t * 0.23) * 0.25 + Math.sin(t * 0.37 + 1.7) * 0.1) *
       (1 - dive * 0.4);
+    const targetX = gap.mid + Math.max(-room, Math.min(room, drift));
     const y =
       lerp(CRUISE_HEIGHT, CANYON_HEIGHT, dive) + Math.sin(t * 0.31) * 0.15;
-    camera.position.set(canyonCenter(q) + drift, y, z);
 
-    // Aim down the canyon ahead: tilted down over the rim, nearly level inside
+    // Aim down the middle of the gap further ahead: tilted down over the
+    // rim, nearly level inside
     const tz = z - LOOK_AHEAD;
-    camera.lookAt(
-      canyonCenter(tz - travel) + Math.sin(t * 0.17) * 0.4,
-      lerp(2.2, 0.9, dive) + Math.sin(t * 0.13) * 0.2,
-      tz,
-    );
+    const aheadGap = canyonGap(tz - travel);
+    const targetAimX = aheadGap.mid + Math.sin(t * 0.17) * Math.min(0.4, aheadGap.half * 0.5);
+
+    // Ease toward those targets so any kink in the walls can't jerk the camera
+    // (snap straight there on the first frame, or after a long gap)
+    const f = flight.current;
+    const dt = t - f.t;
+    f.t = t;
+    const ease = f.x === null || dt > 2 ? 1 : 1 - Math.exp(-Math.max(0, dt) / 0.6);
+    f.x = f.x === null ? targetX : lerp(f.x, targetX, ease);
+    f.aimX = f.aimX === null ? targetAimX : lerp(f.aimX, targetAimX, ease);
+
+    camera.position.set(f.x, y, z);
+    camera.lookAt(f.aimX, lerp(2.2, 0.9, dive) + Math.sin(t * 0.13) * 0.2, tz);
 
     // Bank into the bends, plus a slight lazy roll
     camera.rotateZ(-canyonBend(q - 3) * 2.5 + Math.sin(t * 0.19) * 0.02);
