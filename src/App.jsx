@@ -6,6 +6,7 @@ import Experience from "./components/Experience.jsx";
 import Work from "./components/Work.jsx";
 import Leadership from "./components/Leadership.jsx";
 import Footer from "./components/Footer.jsx";
+import UnderConstruction from "./components/UnderConstruction.jsx";
 
 const App = () => (
   <BrowserRouter>
@@ -14,9 +15,18 @@ const App = () => (
     <main>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/experience" element={<Experience />} />
-        <Route path="/projects" element={<Work />} />
-        <Route path="/leadership" element={<Leadership />} />
+        <Route
+          path="/experience"
+          element={<UnderConstruction><Experience /></UnderConstruction>}
+        />
+        <Route
+          path="/projects"
+          element={<UnderConstruction><Work /></UnderConstruction>}
+        />
+        <Route
+          path="/leadership"
+          element={<UnderConstruction><Leadership /></UnderConstruction>}
+        />
       </Routes>
     </main>
     <Footer />

@@ -17,6 +17,7 @@ import "../styles/components/masonry.css";
 import "../styles/components/contact.css";
 import "../styles/components/footer.css";
 import "../styles/components/mobile-nav.css";
+import "../styles/components/under-construction.css";
 import "../styles/utils.css";
 import App from "./App.jsx";
 
