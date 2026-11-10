@@ -93,24 +93,45 @@
   padding-right: 0.5rem;
 }
 
+/* Panes separate the sections now, so the old dividers are hidden. */
 .section-divider {
-  border: none;
-  border-top: 1px solid var(--clr-slate800);
-  margin: 3rem auto;
+  display: none;
 }
 
 .section {
-  margin-top: 7rem;
+  margin-top: var(--pane-gap);
 }
 
-.section-divider + .section {
-  margin-top: 0;
+/* Glass panes: the hero plus every section inside <main> stack as cards. */
+main .section,
+.michael {
+  width: calc(100% - 2rem);
+  padding: 2rem 1.25rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--pane-radius);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* keep anchor jumps (#contact etc.) clear of the sticky nav */
+  scroll-margin-top: 6rem;
+}
+
+.michael {
+  margin-top: var(--pane-gap);
+}
+
+@media (min-width: 768px) {
+  main .section,
+  .michael {
+    padding: 3rem 2.5rem;
+  }
 }
 
 /* Standalone pages (Experience/Projects/Leadership) start right under
-   the nav with no divider above them - match the hero's top spacing. */
+   the nav - match the hero's top spacing. */
 main > .section:first-child {
-  margin-top: 2rem;
+  margin-top: var(--pane-gap);
 }
 
 main + .footer {
@@ -152,14 +173,8 @@ main + .footer {
   .container {
     max-width: 1024px;
   }
-  .section {
-    margin-top: 14rem;
-  }
-  .section-divider {
-    margin: 5rem auto;
-  }
-  main > .section:first-child {
-    margin-top: 3rem;
+  :root {
+    --pane-gap: 2rem;
   }
   main + .footer {
     margin-top: 4rem;
@@ -170,9 +185,6 @@ main + .footer {
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
-  }
-  main > .section:first-child {
-    margin-top: 4rem;
   }
 }
 

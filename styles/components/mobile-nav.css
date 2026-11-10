@@ -1,5 +1,6 @@
 .mobile-nav {
-  position: absolute;
+  /* fixed so the menu covers the viewport wherever the sticky nav is opened */
+  position: fixed;
   top: 0;
   left: 0;
   z-index: 999;

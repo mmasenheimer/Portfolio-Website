@@ -6,7 +6,8 @@
 
 .hero-backdrop {
   position: relative;
-  overflow: hidden;
+  /* visible so the hero pane's shadow isn't clipped */
+  overflow: visible;
 }
 
 .hero-backdrop__dither {
